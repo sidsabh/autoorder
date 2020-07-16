@@ -22,6 +22,7 @@ app.config.from_object(__name__)
 def main():
 
     #session.clear()
+    print(session)
 
     #get the message that was sent and make it all lowercase
     incoming_msg = request.values.get('Body', None)
@@ -46,18 +47,21 @@ def main():
         return finished_ordering(incoming_msg)
 
 
+
 #triggered if the message sent is the first message the customer has sent in 4 hours I think because that is when the session is cleared
 def first_message(incoming_msg, phone_number):
     
     #initialize order object
     #session["order"] = Order([], "pickup", phone_number, 346356457, None, None)
-    session["order"] = {"item_list":[], "method_of_getting_food":"pickup", "phone_number":phone_number, "order_id":1234, "address":None, "comments":None}
+    #session["order"] = {"item_list":[], "method_of_getting_food":"pickup", "phone_number":phone_number, "order_id":1234, "address":None, "comments":None}
 
     #update the section of the process
     session["section"] = "ordering_process"
     
     #send the restaurant's custom intro message
     return send_message(menu.intro_message)
+
+
 
 #triggered if the customer is in the middle of the ordering process
 def ordering_process(incoming_msg):
@@ -80,12 +84,16 @@ def ordering_process(incoming_msg):
     
     #if a specific main item was detected
     else:
+        
         session["order"]["item_list"].append(main_item_or_error_code)
+        print(session)
         response = ""
         for item in session["order"]["item_list"]:
             response = response +"%s. " %item.name
         response = response+'What else would you like? If you would like to restart your order please text "restart." If that is all please text "finished."'
         return send_message(response)
+
+
 
 def finished_ordering(incoming_msg):
 

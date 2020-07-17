@@ -16,6 +16,16 @@ class Menu:
         self.pickup_time = pickup_time
         self.is_open = is_open
 
+menu = {
+    "restaurant_name":str,
+    "main_items":list,
+    "open_intro_message":str,
+    "closed_intro_message":str,
+    "delivery_time":int,
+    "pickup_time":int,
+    "offers_delivery":bool,
+    "is_open":bool
+}
     
 
 #primary items on the menu
@@ -26,6 +36,13 @@ class MainItem:
         self.names_list = names_list
         self.adds_list = adds_list
         self.base_price = base_price
+
+main_item = {
+    "name":str,
+    "names_list":list,
+    "adds_list":list,
+    "base_price":float
+}
 
 
 #a specific list of add-ons for a main item
@@ -38,6 +55,13 @@ class AddOnList:
         self.max_choices = max_choices
         self.prompting_question = prompting_question
 
+add_on_list = {
+    "name":str,
+    "choice_list":list,
+    "min_choices":int,
+    "max_choices":int,
+    "prompting_question":str
+}
 
 #an item in the add-on list
 class AddOnChoice:
@@ -47,4 +71,10 @@ class AddOnChoice:
         self.names_list = names_list
         self.add_price = add_price
         #has quantity
+
+add_on_choice = {
+    "name":str,
+    "names_list":str,
+    "add_price":float
+}
 

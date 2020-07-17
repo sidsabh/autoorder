@@ -6,8 +6,6 @@ to enable text message ordering for restaurants.
 
 from flask import Flask, request, session
 from twilio.twiml.messaging_response import MessagingResponse
-from menu import *
-from order import *
 from sample_menu import *
 from methods import *
 
@@ -22,7 +20,7 @@ app.config.from_object(__name__)
 def main():
 
     print(session)
-    
+
     #get the message that was sent and make it all lowercase
     incoming_msg = request.values.get('Body', None)
     incoming_msg = incoming_msg.lower()

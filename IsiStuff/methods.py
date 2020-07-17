@@ -45,7 +45,7 @@ def get_main_item(incoming_msg):
         return possible_main_items[0]
     
     #if the user indicated multiple main items
-    if possible_main_items.len() > 1:
+    if len(possible_main_items) > 1:
 
         #Perhaps one main item is "pizza" and another is "deep dish pizza". If the user orders "deep dish pizza" then the program will pick up on both.
         for possible_subitem in possible_main_items:

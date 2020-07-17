@@ -23,7 +23,7 @@ pizza_sizes = AddOnList("pizza sizes", 1, 1, [small, medium, large], "What size 
 
 burger = MainItem("burger", ["burger", "hamberder"], [burger_toppings], 10.0)
 pizza = MainItem("pizza", ["pizza", "pie"], [pizza_toppings, pizza_sizes], 8.0)
-coke = MainItem("coke", ["coke", "coca", "cola"], [], 1.5)
+coke = MainItem("coke", ["coke", "cola"], [], 1.5)
 
 intro_message = "Welcome to Cheesy Does It! Here is our menu. What can I get for you?"
 closed_message = "Welcome to Cheesy Does It! Here is our menu. We are currently closed but will open soon! Our hours are: [hours]"

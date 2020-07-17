@@ -19,8 +19,6 @@ app.config.from_object(__name__)
 @app.route("/sms", methods=['GET', 'POST'])
 def main():
 
-    print(session)
-
     #get the message that was sent and make it all lowercase
     incoming_msg = request.values.get('Body', None)
     incoming_msg = incoming_msg.lower()
@@ -49,14 +47,13 @@ def main():
 def first_message(incoming_msg, phone_number):
     
     #initialize order object
-    #session["order"] = Order([], "pickup", phone_number, 346356457, None, None)
     session["order"] = {"item_list":[], "method_of_getting_food":"pickup", "phone_number":phone_number, "order_id":1234, "address":None, "comments":None}
 
     #update the section of the process
     session["section"] = "ordering_process"
     
     #send the restaurant's custom intro message
-    return send_message(menu.intro_message)
+    return send_message(menu["open_intro_message"])
 
 
 
@@ -83,10 +80,9 @@ def ordering_process(incoming_msg):
     else:
         
         session["order"]["item_list"].append(main_item_or_error_code)
-        print(session)
         response = ""
         for item in session["order"]["item_list"]:
-            response = response +"%s. " %item.name
+            response = response +"%s. " %item["name"]
         response = response+'What else would you like? If you would like to restart your order please text "restart." If that is all please text "finished."'
         return send_message(response)
 
@@ -96,6 +92,7 @@ def finished_ordering(incoming_msg):
 
     session["section"] = "first_message"
     return send_message("ur done")
+    session.clear()
     
 
 

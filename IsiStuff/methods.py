@@ -4,7 +4,6 @@ This file contains supplementary methods that may be used in the main file.
 
 
 from twilio.twiml.messaging_response import MessagingResponse
-from menu import *
 from sample_menu import *
 
 
@@ -31,8 +30,8 @@ def get_main_item(incoming_msg):
 
     #gets all the main items included in the user's input string
     possible_main_items = []
-    for main_item in menu.mains_list:
-        for name in main_item.names_list:
+    for main_item in menu["main_items"]:
+        for name in main_item["names_list"]:
             if name in incoming_msg:
                 possible_main_items.append(main_item)
     
@@ -49,10 +48,12 @@ def get_main_item(incoming_msg):
 
         #Perhaps one main item is "pizza" and another is "deep dish pizza". If the user orders "deep dish pizza" then the program will pick up on both.
         for possible_subitem in possible_main_items:
-            for main_item in possible_main_items:
-                if possible_subitem != main_item:
-                    if possible_subitem in main_item:
-                        possible_main_items.remove(possible_subitem)
+            for name1 in possible_subitem["names_list"]:
+                for main_item in possible_main_items:
+                    for name2 in main_item["names_list"]:
+                        if possible_subitem != main_item:
+                            if name1 in name2:
+                                possible_main_items.remove(possible_subitem)
 
         #check if that narrowed list down to 1
         if len(possible_main_items) == 1:
@@ -61,9 +62,9 @@ def get_main_item(incoming_msg):
         #Perhaps one of the main items is actually supposed to be a side. Like the person asks for a side of fries but fries is also a main item.
         for possible_side in possible_main_items:
             for main_item in possible_main_items:
-                for side_list in main_item.adds_list:
-                    for choice in side_list.choice_list:
-                        if choice.name == possible_side.name:
+                for side_list in main_item["adds_list"]:
+                    for choice in side_list["choice_list"]:
+                        if choice.name == possible_side["name"]:
                             possible_main_items.remove(possible_side)
 
         #check if that narrowed list down to 1

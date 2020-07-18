@@ -18,13 +18,13 @@ class Menu:
 
 menu = {
     "restaurant_name":str,
-    "main_items":list,
     "open_intro_message":str,
     "closed_intro_message":str,
     "delivery_time":int,
     "pickup_time":int,
     "offers_delivery":bool,
     "is_open":bool
+    "main_items":list,
 }
     
 
@@ -61,7 +61,9 @@ add_on_list = {
     "min_choices":int,
     "max_choices":int,
     "prompting_question":str
+    "sublist_inceptions":list
 }
+
 
 #an item in the add-on list
 class AddOnChoice:

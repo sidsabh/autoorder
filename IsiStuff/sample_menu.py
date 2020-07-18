@@ -2,6 +2,12 @@
 Sample menu in dictionary form.
 """
 
+import pymongo
+from pymongo import MongoClient
+cluster = MongoClient("mongodb+srv://isidonnelly:1234@cluster0.mgmae.mongodb.net/auto_order?retryWrites=true&w=majority")
+db = cluster["auto_order"]
+menu_collection = db["menus"]
+
 
 #Add On Choices
 pizza_small = {
@@ -59,7 +65,8 @@ burger_toppings = {
     "choice_list":[],
     "min_choices":0,
     "max_choices":100,
-    "prompting_question":"What toppings would you like on your burger, if any?"
+    "prompting_question":"What toppings would you like on your burger, if any?",
+    "sublist_inceptions":[]
 }
 
 pizza_toppings = {
@@ -67,7 +74,8 @@ pizza_toppings = {
     "choice_list":[],
     "min_choices":0,
     "max_choices":100,
-    "prompting_question":"What toppings would you like on your pizza?"
+    "prompting_question":"What toppings would you like on your pizza?",
+    "sublist_inceptions":[]
 }
 
 pizza_sizes = {
@@ -75,7 +83,8 @@ pizza_sizes = {
     "choice_list":[],
     "min_choices":1,
     "max_choices":1,
-    "prompting_question":"What size pizza would you like?"
+    "prompting_question":"What size pizza would you like?",
+    "sublist_inceptions":[]
 }
 
 
@@ -89,7 +98,7 @@ pizza = {
 
 burger = {
     "name":"Hamburger",
-    "names_list":["burger, hamberder"],
+    "names_list":["burger", "hamberder"],
     "adds_list":[burger_toppings],
     "base_price":10.0
 }
@@ -105,11 +114,14 @@ coke = {
 #Overall menu
 menu = {
     "restaurant_name":"Cheesy Does It",
-    "main_items":[pizza, burger, coke],
     "open_intro_message":"Welcome to Cheesy Does It! Here is our menu. What can I get for you?",
     "closed_intro_message":"Welcome to Cheesy Does It! Here is our menu. We are currently closed but will open soon! Our hours are: [hours]",
     "delivery_time":60,
     "pickup_time":30,
     "offers_delivery":True,
-    "is_open":True
+    "is_open":True,
+    "main_items":[pizza, burger, coke]
 }
+
+menu_collection.delete_one({"_id":0})
+menu_collection.insert_one({"_id":0,"menu":menu})

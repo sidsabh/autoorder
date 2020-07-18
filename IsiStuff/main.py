@@ -8,17 +8,22 @@ from flask import Flask, request, session
 from twilio.twiml.messaging_response import MessagingResponse
 from sample_menu import *
 from methods import *
+import pymongo
+from pymongo import MongoClient
 
+#setup database
+cluster = MongoClient("mongodb+srv://isidonnelly:1234@cluster0.mgmae.mongodb.net/auto_order?retryWrites=true&w=majority")
+db = cluster["auto_order"]
+opc = db["order_process"]
 
-
-# The session object makes use of a secret key.
-SECRET_KEY = "kj43j34btw8er93brwerb2395834ghr3urhw4u3r7h2u3hr2j3br34876rv87t"
+#setup flask app
 app = Flask(__name__)
 app.config.from_object(__name__)
 
+#entry point for when message comes in
 @app.route("/sms", methods=['GET', 'POST'])
 def main():
-
+    
     #get the message that was sent and make it all lowercase
     incoming_msg = request.values.get('Body', None)
     incoming_msg = incoming_msg.lower()
@@ -26,20 +31,20 @@ def main():
     #get the phone number of the incoming msg
     phone_number = request.values.get('From', None)
 
-    #get the section of the order process the customer is in
-    section = session.get('section', "first_message")
+    #get the order of the phone number
+    order = opc.find_one({"phone_number":phone_number})
     
     #if this is the first message that the customer sends
-    if section == "first_message":
+    if order == None:
         return first_message(incoming_msg, phone_number)
 
     #if the customer is in the ordering process
-    if section == "ordering_process":
-        return ordering_process(incoming_msg)
+    if order["section"] == "ordering_process":
+        return ordering_process(incoming_msg, phone_number)
 
     #if the customer just indicated they are finished ordering
-    if section == "finished_ordering":
-        return finished_ordering(incoming_msg)
+    if order["section"] == "finished_ordering":
+        return finished_ordering(incoming_msg, phone_number)
 
 
 
@@ -47,22 +52,18 @@ def main():
 def first_message(incoming_msg, phone_number):
     
     #initialize order object
-    session["order"] = {"item_list":[], "method_of_getting_food":"pickup", "phone_number":phone_number, "order_id":1234, "address":None, "comments":None}
+    opc.insert_one({"phone_number":phone_number, "section":"ordering_process", "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None})
 
-    #update the section of the process
-    session["section"] = "ordering_process"
-    
     #send the restaurant's custom intro message
     return send_message(menu["open_intro_message"])
 
 
-
 #triggered if the customer is in the middle of the ordering process
-def ordering_process(incoming_msg):
+def ordering_process(incoming_msg, phone_number):
 
     #if the customer indicates they are done ordering
     if "finish" in incoming_msg:
-        session["section"] = "finished_ordering"
+        opc.update_one({"phone_number":phone_number}, {"$set":{"section":"finished_ordering"}})
         return send_message("Thank you for your order. It will be processed shortly.")
     
     #get the main item the customer ordered
@@ -79,20 +80,23 @@ def ordering_process(incoming_msg):
     #if a specific main item was detected
     else:
         
-        session["order"]["item_list"].append(main_item_or_error_code)
+        #make list of main items, update said list in db
+        new_list = opc.find_one({"phone_number":phone_number})["item_list"]
+        new_list.append(main_item_or_error_code)
+        opc.update_one({"phone_number":phone_number}, {"$set":{"item_list":new_list}})
+
         response = ""
-        for item in session["order"]["item_list"]:
+        for item in new_list:
             response = response +"%s. " %item["name"]
         response = response+'What else would you like? If you would like to restart your order please text "restart." If that is all please text "finished."'
         return send_message(response)
+        
 
 
-
-def finished_ordering(incoming_msg):
-
-    session["section"] = "first_message"
+def finished_ordering(incoming_msg, phone_number):
+    opc.delete_one({"phone_number":phone_number})
     return send_message("ur done")
-    session.clear()
+    
     
 
 

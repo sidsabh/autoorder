@@ -71,8 +71,6 @@ def get_main_item(incoming_msg):
         if len(possible_main_items) == 1:
             return possible_main_items[0]
 
-
-
         #if there are still multiple possible items, return error code 1
         if len(possible_main_items) > 1:
             return 1

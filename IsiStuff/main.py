@@ -85,6 +85,7 @@ def ordering_process(incoming_msg, phone_number):
         new_list.append(main_item_or_error_code)
         opc.update_one({"phone_number":phone_number}, {"$set":{"item_list":new_list}})
 
+        #build message
         response = ""
         for item in new_list:
             response = response +"%s. " %item["name"]

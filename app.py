@@ -21,8 +21,7 @@ def get_random_string(length):
 def index():
     if 'username' in session:
         return 'You are logged in as ' + session['username']
-
-    return render_template('index.html')
+    return render_template('sign-in.html')
 
 
 @app.route('/login', methods=['POST'])

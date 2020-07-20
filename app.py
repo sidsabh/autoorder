@@ -4,7 +4,6 @@ from bson.json_util import dumps
 import bcrypt
 import time
 import string
-import random
 
 app = Flask(__name__)
 

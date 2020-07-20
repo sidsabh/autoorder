@@ -5,6 +5,14 @@ This file contains supplementary methods that may be used in the main file.
 
 from twilio.twiml.messaging_response import MessagingResponse
 from sample_menu import *
+import pymongo
+from pymongo import MongoClient
+
+
+#setup database for all methods
+cluster = MongoClient("mongodb+srv://isidonnelly:1234@cluster0.mgmae.mongodb.net/auto_order?retryWrites=true&w=majority")
+db = cluster["auto_order"]
+opc = db["order_process"]
 
 
 """
@@ -79,13 +87,38 @@ def get_main_item(incoming_msg):
         if len(possible_main_items) == 0:
             return 2
 
+"""
+Makes sure the current_item has all the sides filled out in accordance with min and max values.
+Input: opc, phone number
+Returns: question if a sublist is not filled out properly
+"""
+def assert_current(phone_number):
+
+    #pull the current item from the db
+    current_item = opc.find_one({"phone_number":phone_number})["current_item"]
+
+    #iterate through sublist and make sure options match min/max requirements
+    for sublist in current_item["main_item"]["adds_list"]:
+
+        #gets how many items are in a certain sublist
+        length = len(current_item[sublist["name"]])
+
+        if length==0:
+            return send_message(sublist["prompting_question"])
+
+        if length<sublist["min_choices"]:
+            return send_message("{q} (you must have a minimum of {min})".format(q=sublist["prompting_question"], min=sublist["min_choices"]))
+
+        if length>sublist["max_choices"]:
+            return send_message("{q} (you must have a maximum of {max})".format(q=sublist["prompting_question"], max=sublist["max_choices"]))
+
+    #if none of the sublists had any issues
+    return send_message("success!")
 
 
-    
-    
-
-    
-                
-
-
-
+"""
+Takes a message and find things in sublists and adds them to the current item.
+Input: opc, phone number
+"""
+def fill_in_sublists(phone_number, msg):
+    print("hi")

@@ -1,0 +1,95 @@
+<html>
+
+<head>
+    <title>Orders</title>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 50%;
+        }
+
+        td,
+        th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <table>
+            <tr>
+                <th>Order ID</th>
+                <th>Timestamp</th>
+                <th>Customer</th>
+                <th>Order</th>
+                <th>Total</th>
+                <th>Delete</th>
+            </tr>
+            <tr v-for="order in orders">
+                <td><% order.order_id %></td>
+                <td><% unixToHuman(order.timestamp) %></td>
+                <td><% order.customer %></td>
+                <td>
+                    <ul>
+                        <li v-for="item in order.items"><% item[0] %> - $<% item[1] %> </li>
+                    </ul>
+                </td>
+                <td>$<% order.total %></td>
+                <td><button v-on:click="removeOrder(order.order_id)">Remove</button></td>
+            </tr>
+        </table>
+    </div>
+</body>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        delimiters: ["<%", "%>"],
+        data: {
+            orders: []
+        },
+        created() {
+            axios.get("/api/orders/poll")
+                .then(res => {
+                    this.orders = res.data
+                })
+            setInterval(() => {
+                axios.get("/api/orders/poll")
+                    .then(res => {
+                        this.orders = res.data
+                    })
+            }, 3000);
+        },
+        methods: {
+            unixToHuman: function (timestamp) {
+                var date = new Date(timestamp * 1000);
+                var hours = date.getHours();
+                var minutes = "0" + date.getMinutes();
+                var seconds = "0" + date.getSeconds();
+                return formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+            },
+            removeOrder: function (order_id) {
+                axios.post('/api/orders/remove', {
+                        order_id: order_id
+                    })
+                    .then(() => {
+                        axios.get("/api/orders/poll")
+                            .then(res => {
+                                this.orders = res.data
+                            })
+                    })
+            }
+        }
+    })
+</script>
+
+</html>

@@ -3,7 +3,6 @@ from flask_pymongo import PyMongo
 from bson.json_util import dumps
 import bcrypt
 import time
-import string
 
 app = Flask(__name__)
 

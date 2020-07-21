@@ -61,7 +61,7 @@ mushroom = {
 
 #Add On Lists
 burger_toppings = {
-    "name":"Burger Toppings",
+    "name":"Toppings",
     "choice_list":[onion, lettuce, tomatos],
     "min_choices":0,
     "max_choices":100,
@@ -70,7 +70,7 @@ burger_toppings = {
 }
 
 pizza_toppings = {
-    "name":"Pizza Toppings",
+    "name":"Toppings",
     "choice_list":[pepperoni, mushroom],
     "min_choices":0,
     "max_choices":100,
@@ -79,7 +79,7 @@ pizza_toppings = {
 }
 
 pizza_sizes = {
-    "name":"Pizza Sizes",
+    "name":"Size",
     "choice_list":[pizza_large, pizza_medium, pizza_small],
     "min_choices":1,
     "max_choices":1,

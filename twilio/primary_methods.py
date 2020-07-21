@@ -55,19 +55,7 @@ def ordering_process(incoming_msg, phone_number):
         fill_in_sublists(phone_number, incoming_msg)
 
         return assert_current(phone_number)
-        """
-        #make list of main items, update said list in db
-        new_list = opc.find_one({"phone_number":phone_number})["item_list"]
-        new_list.append(main_item_or_error_code)
-        opc.update_one({"phone_number":phone_number}, {"$set":{"item_list":new_list}})
-
-        #build message
-        response = ""
-        for item in new_list:
-            response = response +"%s. " %item["name"]
-        response = response+'What else would you like? If you would like to restart your order please text "restart." If that is all please text "finished."'
-        return send_message(response)
-        """
+    
         
 
 #triggered if a question regarding a sublist was just asked

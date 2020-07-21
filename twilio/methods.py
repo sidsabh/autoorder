@@ -108,18 +108,32 @@ def assert_current(phone_number):
             return send_message(sublist["prompting_question"])
 
         if length<sublist["min_choices"]:
+            current_item[sublist["name"]] = []
+            opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})
             opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
-            return send_message("{q} (you must have a minimum of {min})".format(q=sublist["prompting_question"], min=sublist["min_choices"]))
+            return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min=sublist["min_choices"], max=sublist["max_choices"]))
 
         if length>sublist["max_choices"]:
+            current_item[sublist["name"]] = []
+            opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})
             opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
-            return send_message("{q} (you must have a maximum of {max})".format(q=sublist["prompting_question"], max=sublist["max_choices"]))
+            return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min = sublist["min_choices"], max=sublist["max_choices"]))
 
     #if none of the sublists had any issues
-
-    #temp message. in future will display whole order and price
     opc.update_one({"phone_number":phone_number}, {"$set":{"section":"ordering_process"}})
-    return send_message("Success! What else would you like?")
+    resp = "YOUR ORDER: "
+    
+    item_list = opc.find_one({"phone_number":phone_number})["item_list"]
+    if item_list == None:
+        item_list = []
+    item_list.append(current_item)
+    opc.update_one({"phone_number":phone_number}, {"$set":{"item_list":item_list}})
+
+    for item in item_list:
+        resp += stringify(item)
+
+    resp += ' \n \nWhat is the next item I can get for you? If you are done text "finished". If you would like to restart text "restart".'
+    return send_message(resp)
 
 
 """
@@ -140,3 +154,44 @@ def fill_in_sublists(phone_number, incoming_msg):
                     
                     current_item[sublist["name"]].append(choice)
                     opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})
+
+
+
+"""
+Turns an item the customer ordered into a string to be repeated back to them.
+Input: item (current_item)
+Returns: A string, example: "1x Pizza[$8] (Size: Medium[+$2]. Toppings: Pepperoni[+$1], Mushroom[+$0.5], Onion[+$1].)."
+"""
+def stringify(item):
+     
+    string = "1x {main_name}[${main_price}] ".format(main_name=item["main_item"]["name"], main_price=item["main_item"]["base_price"])
+
+    if len(item["main_item"]["adds_list"]) > 0:
+
+        string += "("
+
+        for sublist in item["main_item"]["adds_list"]:
+
+            string += "{sub_name}: ".format(sub_name=sublist["name"])
+
+            for subitem in item[sublist["name"]]:
+
+                string += "{name}[+${price}]".format(name=subitem["name"], price=subitem["add_price"])
+                if subitem == item[sublist["name"]][-1]:
+                    string += ". "
+                else:
+                    string += ", "
+
+        string = string[:-1]
+        string += ")" 
+
+    string += "."
+
+    return string
+
+
+"""
+
+"""
+
+def total_cost():

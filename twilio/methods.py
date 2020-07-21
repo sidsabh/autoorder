@@ -72,7 +72,7 @@ def get_main_item(incoming_msg):
             for main_item in possible_main_items:
                 for side_list in main_item["adds_list"]:
                     for choice in side_list["choice_list"]:
-                        if choice.name == possible_side["name"]:
+                        if choice["name"] == possible_side["name"]:
                             possible_main_items.remove(possible_side)
 
         #check if that narrowed list down to 1
@@ -105,19 +105,19 @@ def assert_current(phone_number):
 
         if length==0:
             opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
-            return send_message(sublist["prompting_question"])
+            return send_message(sublist["prompting_question"]+your_options_are(sublist))
 
         if length<sublist["min_choices"]:
             current_item[sublist["name"]] = []
             opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})
             opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
-            return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min=sublist["min_choices"], max=sublist["max_choices"]))
+            return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min=sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
 
         if length>sublist["max_choices"]:
             current_item[sublist["name"]] = []
             opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})
             opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
-            return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min = sublist["min_choices"], max=sublist["max_choices"]))
+            return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min = sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
 
     #if none of the sublists had any issues
     opc.update_one({"phone_number":phone_number}, {"$set":{"section":"ordering_process"}})
@@ -132,6 +132,7 @@ def assert_current(phone_number):
     for item in item_list:
         resp += stringify(item)
 
+    resp += " \n\nTOTAL COST: {cost}".format(cost=pricify(total_cost(phone_number)))
     resp += ' \n \nWhat is the next item I can get for you? If you are done text "finished". If you would like to restart text "restart".'
     return send_message(resp)
 
@@ -164,7 +165,7 @@ Returns: A string, example: "1x Pizza[$8] (Size: Medium[+$2]. Toppings: Pepperon
 """
 def stringify(item):
      
-    string = "1x {main_name}[${main_price}] ".format(main_name=item["main_item"]["name"], main_price=item["main_item"]["base_price"])
+    string = "\n\n1x {main_name}[{main_price}] ".format(main_name=item["main_item"]["name"], main_price=pricify(item["main_item"]["base_price"]))
 
     if len(item["main_item"]["adds_list"]) > 0:
 
@@ -176,7 +177,7 @@ def stringify(item):
 
             for subitem in item[sublist["name"]]:
 
-                string += "{name}[+${price}]".format(name=subitem["name"], price=subitem["add_price"])
+                string += "{name}[+{price}]".format(name=subitem["name"], price=pricify(subitem["add_price"]))
                 if subitem == item[sublist["name"]][-1]:
                     string += ". "
                 else:
@@ -190,8 +191,57 @@ def stringify(item):
     return string
 
 
-"""
 
 """
+Totals the cost of all the items in the order.
+Returns: Float of total order cost
+"""
+def total_cost(phone_number):
 
-def total_cost():
+    item_list = opc.find_one({"phone_number":phone_number})["item_list"]
+    cost = 0
+
+    for item in item_list:
+        cost += item["main_item"]["base_price"]
+        for sublist in item["main_item"]["adds_list"]:
+            for subitem in item[sublist["name"]]:
+                cost += subitem["add_price"]
+
+    return cost
+
+
+
+"""
+Makes a string like: "Your options are: pepperoni mushroom onion etc." for a sublist
+Input: A sublist
+Returns: string
+"""
+def your_options_are(sublist):
+
+    resp = "\n\nYour options are:"
+    for subitem in sublist["choice_list"]:
+        resp += "\n{item_name}".format(item_name=subitem["name"])
+        resp += " (+{price})".format(price=pricify(subitem["add_price"]))
+
+    return resp
+
+
+
+"""
+Makes prices look nice. (8.0 -> $8)
+Input: a float
+Output: a string
+"""
+def pricify(price):
+    if price.is_integer():
+        price = int(price)
+        resp = "${price}".format(price=price)
+    elif (price/0.1).is_integer():
+        resp = "${price}0".format(price=price)
+    else:
+        resp = "${price}".format(price=price)
+
+    return resp
+
+
+

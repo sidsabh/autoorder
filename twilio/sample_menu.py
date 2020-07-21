@@ -46,6 +46,12 @@ onion = {
     "add_price":1.0
 }
 
+fries = {
+    "name": "French Fries",
+    "names_list":["fries", "fry"],
+    "add_price":3.0
+}
+
 pepperoni = {
     "name":"Pepperoni",
     "names_list":["pepperoni"],
@@ -58,21 +64,48 @@ mushroom = {
     "add_price":1.0
 }
 
+burger_toppings_none = {
+    "name":"None",
+    "names_list":["none", "plain", "no topping"],
+    "add_price":0
+}
+
+burger_sides_none = {
+    "name":"None",
+    "names_list":["none", "no sides"],
+    "add_price":0
+}
+
+pizza_toppings_none = {
+    "name":"None",
+    "names_list":["none", "no toppings", "cheese"],
+    "add_price":0
+}
+
 
 #Add On Lists
 burger_toppings = {
     "name":"Toppings",
-    "choice_list":[onion, lettuce, tomatos],
-    "min_choices":0,
+    "choice_list":[onion, lettuce, tomatos, burger_toppings_none],
+    "min_choices":1,
     "max_choices":100,
     "prompting_question":"What toppings would you like on your burger, if any?",
     "sublist_inceptions":[]
 }
 
+burger_sides = {
+    "name":"Sides",
+    "choice_list":[fries, burger_sides_none],
+    "min_choices":1,
+    "max_choices":100,
+    "prompting_question":"What sides would you like with your burger, if any?",
+    "sublist_inceptions":[]
+}
+
 pizza_toppings = {
     "name":"Toppings",
-    "choice_list":[pepperoni, mushroom],
-    "min_choices":0,
+    "choice_list":[pepperoni, mushroom, pizza_toppings_none],
+    "min_choices":1,
     "max_choices":100,
     "prompting_question":"What toppings would you like on your pizza?",
     "sublist_inceptions":[]
@@ -99,7 +132,7 @@ pizza = {
 burger = {
     "name":"Hamburger",
     "names_list":["burger", "hamberder"],
-    "adds_list":[burger_toppings],
+    "adds_list":[burger_toppings, burger_sides],
     "base_price":10.0
 }
 
@@ -110,6 +143,12 @@ coke = {
     "base_price":1.5
 }
 
+fries = {
+    "name":"French Fries",
+    "names_list":["fries", "fry"],
+    "adds_list":[],
+    "base_price":5.0
+}
 
 #Overall menu
 menu = {
@@ -120,7 +159,7 @@ menu = {
     "pickup_time":30,
     "offers_delivery":True,
     "is_open":True,
-    "main_items":[pizza, burger, coke]
+    "main_items":[pizza, burger, coke, fries]
 }
 
 menu_collection.delete_one({"_id":0})

@@ -104,21 +104,39 @@ def assert_current(phone_number):
         length = len(current_item[sublist["name"]])
 
         if length==0:
+            opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
             return send_message(sublist["prompting_question"])
 
         if length<sublist["min_choices"]:
+            opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
             return send_message("{q} (you must have a minimum of {min})".format(q=sublist["prompting_question"], min=sublist["min_choices"]))
 
         if length>sublist["max_choices"]:
+            opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
             return send_message("{q} (you must have a maximum of {max})".format(q=sublist["prompting_question"], max=sublist["max_choices"]))
 
     #if none of the sublists had any issues
-    return send_message("success!")
+
+    #temp message. in future will display whole order and price
+    opc.update_one({"phone_number":phone_number}, {"$set":{"section":"ordering_process"}})
+    return send_message("Success! What else would you like?")
 
 
 """
 Takes a message and find things in sublists and adds them to the current item.
 Input: opc, phone number
 """
-def fill_in_sublists(phone_number, msg):
-    print("hi")
+def fill_in_sublists(phone_number, incoming_msg):
+    
+    current_item = opc.find_one({"phone_number":phone_number})["current_item"]
+    
+    for sublist in current_item["main_item"]["adds_list"]:
+        
+        for choice in sublist["choice_list"]:
+            
+            for name in choice["names_list"]:
+                
+                if name in incoming_msg:
+                    
+                    current_item[sublist["name"]].append(choice)
+                    opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})

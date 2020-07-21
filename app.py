@@ -1,12 +1,12 @@
 from flask import Flask, render_template, url_for, request, session, redirect, jsonify
 from flask_pymongo import PyMongo
-from flask_talisman import Talisman
+#from flask_talisman import Talisman
 from bson.json_util import dumps
 import bcrypt
 import time
 
 app = Flask(__name__)
-Talisman(app)
+#Talisman(app)
 
 app.config['MONGO_DBNAME'] = 'heroku_8qfx8bg5'
 app.config['MONGO_URI'] = 'mongodb://admin:robin123@ds261077.mlab.com:61077/heroku_8qfx8bg5?retryWrites=false'

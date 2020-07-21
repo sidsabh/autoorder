@@ -62,7 +62,7 @@ mushroom = {
 #Add On Lists
 burger_toppings = {
     "name":"Burger Toppings",
-    "choice_list":[],
+    "choice_list":[onion, lettuce, tomatos],
     "min_choices":0,
     "max_choices":100,
     "prompting_question":"What toppings would you like on your burger, if any?",
@@ -71,7 +71,7 @@ burger_toppings = {
 
 pizza_toppings = {
     "name":"Pizza Toppings",
-    "choice_list":[],
+    "choice_list":[pepperoni, mushroom],
     "min_choices":0,
     "max_choices":100,
     "prompting_question":"What toppings would you like on your pizza?",
@@ -80,7 +80,7 @@ pizza_toppings = {
 
 pizza_sizes = {
     "name":"Pizza Sizes",
-    "choice_list":[],
+    "choice_list":[pizza_large, pizza_medium, pizza_small],
     "min_choices":1,
     "max_choices":1,
     "prompting_question":"What size pizza would you like?",

@@ -47,10 +47,12 @@ def ordering_process(incoming_msg, phone_number):
     else:
 
         #init a dictionary to insert in database, to be stored in temporary slot until all sublists are filled
-        item = {"main_item":main_item_or_error_code}
+        current_item = {"main_item":main_item_or_error_code}
         for sublist in main_item_or_error_code["adds_list"]:
-            item[sublist["name"]] = []
-        opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":item}})
+            current_item[sublist["name"]] = []
+        opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})
+
+        fill_in_sublists(phone_number, incoming_msg)
 
         return assert_current(phone_number)
         """
@@ -67,6 +69,13 @@ def ordering_process(incoming_msg, phone_number):
         return send_message(response)
         """
         
+
+#triggered if a question regarding a sublist was just asked
+def sublist(incoming_msg, phone_number):
+
+    fill_in_sublists(phone_number, incoming_msg)
+    return(assert_current(phone_number))
+
 
 
 def finished_ordering(incoming_msg, phone_number):

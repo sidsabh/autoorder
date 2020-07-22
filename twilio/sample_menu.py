@@ -55,7 +55,7 @@ fries = {
 
 pepperoni = {
     "name":"Pepperoni",
-    "names_list":["pepperoni"],
+    "names_list":["pepperoni", "peperoni"],
     "add_price":1.75
 }
 
@@ -144,7 +144,7 @@ coke = {
     "base_price":1.5
 }
 
-fries = {
+fries_main = {
     "name":"French Fries",
     "names_list":["fries", "fry"],
     "adds_list":[],
@@ -160,7 +160,7 @@ menu = {
     "pickup_time":30,
     "offers_delivery":True,
     "is_open":True,
-    "main_items":[pizza, burger, coke, fries]
+    "main_items":[pizza, burger, coke, fries_main]
 }
 
 menu_collection.delete_one({"_id":0})

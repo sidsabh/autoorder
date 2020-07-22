@@ -15,13 +15,13 @@ opc = db["order_process"]
 
 
 #triggered if the message sent is the first message the customer has sent in 4 hours I think because that is when the session is cleared
-def first_message(incoming_msg, phone_number):
+def first_message(incoming_msg, phone_number, to_number):
     
     #initialize order object
     opc.insert_one({"phone_number":phone_number, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None})
 
     #send the restaurant's custom intro message
-    return send_message(menu["open_intro_message"])
+    return send_message(menu["open_intro_message"], phone_number, to_number)
 
 
 #triggered if the customer is in the middle of the ordering process

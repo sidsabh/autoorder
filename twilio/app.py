@@ -5,7 +5,6 @@ to enable text message ordering for restaurants.
 
 
 from flask import Flask, request, session
-from twilio.twiml.messaging_response import MessagingResponse
 from sample_menu import *
 from methods import *
 import pymongo
@@ -27,11 +26,14 @@ app.config.from_object(__name__)
 def main():
     
     #get the message that was sent and make it all lowercase
-    incoming_msg = request.values.get('Body', None)
+    incoming_msg = request.values.get('Text', None)
     incoming_msg = incoming_msg.lower()
 
     #get the phone number of the incoming msg
     phone_number = request.values.get('From', None)
+
+    #get the phone number the message was sent to
+    to_number = request.values.get('To', None)
 
     #get the order of the phone number
     order = opc.find_one({"phone_number":phone_number})
@@ -42,7 +44,7 @@ def main():
     
     #if this is the first message that the customer sends
     if order == None:
-        return first_message(incoming_msg, phone_number)
+        return first_message(incoming_msg, phone_number, to_number)
 
     #if a sublist is being filled
     if order["sublist_in_q"]:

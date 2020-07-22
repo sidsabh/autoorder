@@ -3,10 +3,12 @@ This file contains supplementary methods that may be used in the main file.
 """
 
 
+from plivo import plivoxml
 from twilio.twiml.messaging_response import MessagingResponse
 from sample_menu import *
 import pymongo
 from pymongo import MongoClient
+from flask import Flask, request, make_response, Response
 
 
 #setup database for all methods
@@ -20,10 +22,20 @@ Sends a message.
 Input: Message to be sent (string)
 Returns: a message (string)
 """
+'''
 def send_message(msg):
     resp = MessagingResponse()
     resp.message(msg)
     return str(resp)
+'''
+def send_message(msg, phone_number, to_number):
+    response = plivoxml.ResponseElement()
+    response.add(
+        plivoxml.MessageElement(
+            msg,
+            src=to_number,  
+            dst=phone_number))
+    return Response(response.to_string(), mimetype='application/xml')
 
 
 """
@@ -139,6 +151,9 @@ def assert_current(phone_number):
 
     resp += stringify_order(phone_number)
     resp += ' \n \nWhat is the next item I can get for you? If you are done text "finished". If you would like to restart text "restart".'
+
+    opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":None}})
+    opc.update_one({"phone_number":phone_number}, {"$set":{"sublist_in_q":None}})
 
     return send_message(resp)
 

@@ -23,7 +23,7 @@ Input: Message to be sent (string)
 Returns: a message (string)
 """
 '''
-def send_message(msg):
+def send_message(msg, phone_number, to_number):
     resp = MessagingResponse()
     resp.message(msg)
     return str(resp)

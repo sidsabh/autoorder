@@ -12,6 +12,12 @@ from pymongo import MongoClient
 from primary_methods import *
 
 
+#set some global variables to be updated later
+from_number = None
+to_number = None
+msg = None
+
+
 #setup database
 cluster = MongoClient("mongodb+srv://isidonnelly:1234@cluster0.mgmae.mongodb.net/auto_order?retryWrites=true&w=majority")
 db = cluster["auto_order"]

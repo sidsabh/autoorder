@@ -103,6 +103,12 @@ def assert_current(phone_number):
         #gets how many items are in a certain sublist
         length = len(current_item[sublist["name"]])
 
+        #if both none and another option exist, delete the none option
+        if length > 1:
+            for subitem in current_item[sublist["name"]]:
+                if subitem["name"] == "None":
+                    current_item[sublist["name"]].remove(subitem)
+
         if length==0:
             opc.update_one({"phone_number":phone_number}, {"$set":{"sublist_in_q":sublist}})
             opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
@@ -125,7 +131,6 @@ def assert_current(phone_number):
     #if none of the sublists had any issues
     opc.update_one({"phone_number":phone_number}, {"$set":{"section":"ordering_process"}})
     resp = ""
-    
     item_list = opc.find_one({"phone_number":phone_number})["item_list"]
     if item_list == None:
         item_list = []

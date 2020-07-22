@@ -52,10 +52,6 @@ def main():
     if order["section"] == "ordering_process":
         return ordering_process(incoming_msg, phone_number)
 
-    #if the customer is filling in a sublist
-    if order["section"] == "sublist":
-        return sublist(incoming_msg, phone_number)
-
     #if the customer just indicated they are finished ordering
     if order["section"] == "finished_ordering":
         return finished_ordering(incoming_msg, phone_number)

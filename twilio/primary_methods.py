@@ -56,13 +56,7 @@ def ordering_process(incoming_msg, phone_number):
 
         return assert_current(phone_number)
     
-        
 
-#triggered if a question regarding a sublist was just asked
-def sublist(incoming_msg, phone_number):
-
-    fill_in_sublists(phone_number, incoming_msg)
-    return(assert_current(phone_number))
 
 #if a sublist is in question
 def sublist_in_q(incoming_msg, phone_number, sublist):

@@ -2,6 +2,7 @@
 Sample menu in dictionary form.
 """
 
+
 import pymongo
 from pymongo import MongoClient
 cluster = MongoClient("mongodb+srv://isidonnelly:1234@cluster0.mgmae.mongodb.net/auto_order?retryWrites=true&w=majority")
@@ -29,7 +30,7 @@ pizza_large = {
 }
 
 tomatos = {
-    "name":"Tomatos",
+    "name":"Tomatoes",
     "names_list":["tomato"],
     "add_price":0.5
 }
@@ -55,13 +56,13 @@ fries = {
 pepperoni = {
     "name":"Pepperoni",
     "names_list":["pepperoni"],
-    "add_price":2.0
+    "add_price":1.75
 }
 
 mushroom = {
     "name":"Mushrooms",
     "names_list":["mushroom"],
-    "add_price":1.0
+    "add_price":1.55
 }
 
 burger_toppings_none = {

@@ -165,11 +165,12 @@ Returns: A string, example: "1x Pizza[$8] (Size: Medium[+$2]. Toppings: Pepperon
 """
 def stringify(item):
      
-    string = "\n\n1x {main_name}[{main_price}] ".format(main_name=item["main_item"]["name"], main_price=pricify(item["main_item"]["base_price"]))
+    string = "\n\n1x {main_name} {main_price} ".format(main_name=item["main_item"]["name"], main_price=pricify(item["main_item"]["base_price"]))
 
     if len(item["main_item"]["adds_list"]) > 0:
 
-        string += "("
+        string += "\n"
+        #string += "("
 
         for sublist in item["main_item"]["adds_list"]:
 
@@ -177,16 +178,16 @@ def stringify(item):
 
             for subitem in item[sublist["name"]]:
 
-                string += "{name}[+{price}]".format(name=subitem["name"], price=pricify(subitem["add_price"]))
+                string += "{name} +{price}".format(name=subitem["name"], price=pricify(subitem["add_price"]))
                 if subitem == item[sublist["name"]][-1]:
                     string += ". "
                 else:
                     string += ", "
 
         string = string[:-1]
-        string += ")" 
+        #string += ")" 
 
-    string += "."
+    
 
     return string
 
@@ -221,7 +222,7 @@ def your_options_are(sublist):
     resp = "\n\nYour options are:"
     for subitem in sublist["choice_list"]:
         resp += "\n{item_name}".format(item_name=subitem["name"])
-        resp += " (+{price})".format(price=pricify(subitem["add_price"]))
+        resp += " (+{priced})".format(priced=pricify(subitem["add_price"]))
 
     return resp
 
@@ -233,7 +234,7 @@ Input: a float
 Output: a string
 """
 def pricify(price):
-    if price.is_integer():
+    if float(price).is_integer():
         price = int(price)
         resp = "${price}".format(price=price)
     elif (price/0.1).is_integer():

@@ -18,7 +18,7 @@ opc = db["order_process"]
 def first_message(incoming_msg, phone_number):
     
     #initialize order object
-    opc.insert_one({"phone_number":phone_number, "section":"ordering_process", "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None})
+    opc.insert_one({"phone_number":phone_number, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None})
 
     #send the restaurant's custom intro message
     return send_message(menu["open_intro_message"])
@@ -64,6 +64,11 @@ def sublist(incoming_msg, phone_number):
     fill_in_sublists(phone_number, incoming_msg)
     return(assert_current(phone_number))
 
+#if a sublist is in question
+def sublist_in_q(incoming_msg, phone_number, sublist):
+
+    fill_in_one_sublist(phone_number, incoming_msg, sublist)
+    return(assert_current(phone_number))
 
 
 def finished_ordering(incoming_msg, phone_number):

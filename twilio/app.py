@@ -33,16 +33,20 @@ def main():
     #get the phone number of the incoming msg
     phone_number = request.values.get('From', None)
 
+    #get the order of the phone number
+    order = opc.find_one({"phone_number":phone_number})
+
     #if the user wants to restart the order
     if incoming_msg == "restart":
         opc.delete_one({"phone_number":phone_number})
-
-    #get the order of the phone number
-    order = opc.find_one({"phone_number":phone_number})
     
     #if this is the first message that the customer sends
     if order == None:
         return first_message(incoming_msg, phone_number)
+
+    #if a sublist is being filled
+    if order["sublist_in_q"]:
+        return sublist_in_q(incoming_msg, phone_number, order["sublist_in_q"])
 
     #if the customer is in the ordering process
     if order["section"] == "ordering_process":

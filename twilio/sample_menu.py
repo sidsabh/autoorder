@@ -67,19 +67,19 @@ mushroom = {
 
 burger_toppings_none = {
     "name":"None",
-    "names_list":["none", "plain", "no topping"],
+    "names_list":["plain", "no topping"],
     "add_price":0
 }
 
 burger_sides_none = {
     "name":"None",
-    "names_list":["none", "no sides"],
+    "names_list":["no sides"],
     "add_price":0
 }
 
 pizza_toppings_none = {
     "name":"None",
-    "names_list":["none", "no toppings", "cheese"],
+    "names_list":["no toppings", "cheese", "plain"],
     "add_price":0
 }
 

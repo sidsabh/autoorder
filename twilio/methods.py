@@ -104,24 +104,27 @@ def assert_current(phone_number):
         length = len(current_item[sublist["name"]])
 
         if length==0:
+            opc.update_one({"phone_number":phone_number}, {"$set":{"sublist_in_q":sublist}})
             opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
             return send_message(sublist["prompting_question"]+your_options_are(sublist))
 
         if length<sublist["min_choices"]:
             current_item[sublist["name"]] = []
+            opc.update_one({"phone_number":phone_number}, {"$set":{"sublist_in_q":sublist}})
             opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})
             opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
             return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min=sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
 
         if length>sublist["max_choices"]:
             current_item[sublist["name"]] = []
+            opc.update_one({"phone_number":phone_number}, {"$set":{"sublist_in_q":sublist}})
             opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})
             opc.update_one({"phone_number":phone_number}, {"$set":{"section":"sublist"}})
             return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min = sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
 
     #if none of the sublists had any issues
     opc.update_one({"phone_number":phone_number}, {"$set":{"section":"ordering_process"}})
-    resp = "YOUR ORDER: "
+    resp = ""
     
     item_list = opc.find_one({"phone_number":phone_number})["item_list"]
     if item_list == None:
@@ -129,17 +132,15 @@ def assert_current(phone_number):
     item_list.append(current_item)
     opc.update_one({"phone_number":phone_number}, {"$set":{"item_list":item_list}})
 
-    for item in item_list:
-        resp += stringify(item)
-
-    resp += " \n\nTOTAL COST: {cost}".format(cost=pricify(total_cost(phone_number)))
+    resp += stringify_order(phone_number)
     resp += ' \n \nWhat is the next item I can get for you? If you are done text "finished". If you would like to restart text "restart".'
+
     return send_message(resp)
 
 
 """
 Takes a message and find things in sublists and adds them to the current item.
-Input: opc, phone number
+Input: phone number, msg
 """
 def fill_in_sublists(phone_number, incoming_msg):
     
@@ -159,37 +160,71 @@ def fill_in_sublists(phone_number, incoming_msg):
 
 
 """
+Takes a message and only fills in a specific sublist.
+Input: phone number, msg, specific sublist
+"""
+def fill_in_one_sublist(phone_number, incoming_msg, sublist):
+
+    current_item = opc.find_one({"phone_number":phone_number})["current_item"]
+
+    for choice in sublist["choice_list"]:
+            
+        for name in choice["names_list"]:
+                
+            if name in incoming_msg:
+                    
+                current_item[sublist["name"]].append(choice)
+                opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})
+
+    #if user did not specify any choices, use the none choice
+    if len(current_item[sublist["name"]]) == 0:
+        for choice in sublist["choice_list"]:
+            if choice["name"] == "None":
+                current_item[sublist["name"]].append(choice)
+                opc.update_one({"phone_number":phone_number}, {"$set":{"current_item":current_item}})
+
+
+
+
+"""
 Turns an item the customer ordered into a string to be repeated back to them.
 Input: item (current_item)
 Returns: A string, example: "1x Pizza[$8] (Size: Medium[+$2]. Toppings: Pepperoni[+$1], Mushroom[+$0.5], Onion[+$1].)."
 """
-def stringify(item):
+def stringify_order(phone_number):
      
-    string = "\n\n1x {main_name} {main_price} ".format(main_name=item["main_item"]["name"], main_price=pricify(item["main_item"]["base_price"]))
+    resp = "YOUR ORDER: "
+    item_list = opc.find_one({"phone_number":phone_number})["item_list"]
 
-    if len(item["main_item"]["adds_list"]) > 0:
+    for item in item_list:
 
-        string += "\n"
-        #string += "("
+        item_str = "\n\n1x {main_name} {main_price} ".format(main_name=item["main_item"]["name"], main_price=pricify(item["main_item"]["base_price"]))
 
-        for sublist in item["main_item"]["adds_list"]:
+        if len(item["main_item"]["adds_list"]) > 0:
 
-            string += "{sub_name}: ".format(sub_name=sublist["name"])
+            item_str += "\n"
+            #item_str += "("
 
-            for subitem in item[sublist["name"]]:
+            for sublist in item["main_item"]["adds_list"]:
 
-                string += "{name} +{price}".format(name=subitem["name"], price=pricify(subitem["add_price"]))
-                if subitem == item[sublist["name"]][-1]:
-                    string += ". "
-                else:
-                    string += ", "
+                item_str += "{sub_name}: ".format(sub_name=sublist["name"])
 
-        string = string[:-1]
-        #string += ")" 
+                for subitem in item[sublist["name"]]:
 
-    
+                    item_str += "{name} +{price}".format(name=subitem["name"], price=pricify(subitem["add_price"]))
+                    if subitem == item[sublist["name"]][-1]:
+                        item_str += ". "
+                    else:
+                        item_str += ", "
 
-    return string
+            item_str = item_str[:-1]
+            #item_str += ")" 
+
+        resp += item_str
+
+    resp += " \n\nTOTAL COST: {cost}".format(cost=pricify(total_cost(phone_number)))
+
+    return resp
 
 
 

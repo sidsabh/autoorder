@@ -44,6 +44,7 @@ def main():
     #if the user wants to restart the order
     if g.msg == "restart":
         opc.delete_one({"from_num":g.from_num})
+        order = None
     
     #if this is the first message that the customer sends
     if order == None:

@@ -21,7 +21,6 @@ opc = db["order_process"]
 #triggered if the message sent is the first message the customer has sent in 4 hours I think because that is when the session is cleared
 def first_message():
     
-    print(g.from_num)
     #initialize order object
     opc.insert_one({"from_num":g.from_num, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None})
 
@@ -33,8 +32,8 @@ def first_message():
 def ordering_process():
 
     #if the customer indicates they are done ordering
-    if "finish" in msg:
-        opc.update_one({"from_num":from_num}, {"$set":{"section":"finished_ordering"}})
+    if "finish" in g.msg:
+        opc.update_one({"from_num":g.from_num}, {"$set":{"section":"finished_ordering"}})
         return send_message("Thank you for your order. It will be processed shortly.")
     
     #get the main item the customer ordered
@@ -55,7 +54,7 @@ def ordering_process():
         current_item = {"main_item":main_item_or_error_code}
         for sublist in main_item_or_error_code["adds_list"]:
             current_item[sublist["name"]] = []
-        opc.update_one({"from_num":from_num}, {"$set":{"current_item":current_item}})
+        opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
 
         fill_in_sublists()
 
@@ -71,7 +70,7 @@ def sublist_in_q(sublist):
 
 
 def finished_ordering():
-    opc.delete_one({"from_num":from_num})
+    opc.delete_one({"from_num":g.from_num})
     return send_message("ur done")
     
     

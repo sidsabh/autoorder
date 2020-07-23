@@ -11,11 +11,7 @@ import pymongo
 from pymongo import MongoClient
 from primary_methods import *
 
-
-#set some global variables to be updated later
-from_number = None
-to_number = None
-msg = None
+import g
 
 
 #setup database
@@ -30,39 +26,40 @@ app.config.from_object(__name__)
 #entry point for when message comes in
 @app.route("/sms", methods=['GET', 'POST'])
 def main():
-    
+
     #get the message that was sent and make it all lowercase
-    incoming_msg = request.values.get('Text', None)
-    incoming_msg = incoming_msg.lower()
+    #CHANGE TO 'Text' WHEN USING PLIVO 
+    g.msg = request.values.get('Body', None)
+    g.msg = g.msg.lower()
 
     #get the phone number of the incoming msg
-    phone_number = request.values.get('From', None)
-
+    g.from_num = request.values.get('From', None)
+    
     #get the phone number the message was sent to
-    to_number = request.values.get('To', None)
+    g.to_num = request.values.get('To', None)
 
     #get the order of the phone number
-    order = opc.find_one({"phone_number":phone_number})
+    order = opc.find_one({"from_num":g.from_num})
 
     #if the user wants to restart the order
-    if incoming_msg == "restart":
-        opc.delete_one({"phone_number":phone_number})
+    if g.msg == "restart":
+        opc.delete_one({"from_num":g.from_num})
     
     #if this is the first message that the customer sends
     if order == None:
-        return first_message(incoming_msg, phone_number, to_number)
+        return first_message()
 
     #if a sublist is being filled
     if order["sublist_in_q"]:
-        return sublist_in_q(incoming_msg, phone_number, order["sublist_in_q"])
+        return sublist_in_q(order["sublist_in_q"])
 
     #if the customer is in the ordering process
     if order["section"] == "ordering_process":
-        return ordering_process(incoming_msg, phone_number)
+        return ordering_process()
 
     #if the customer just indicated they are finished ordering
     if order["section"] == "finished_ordering":
-        return finished_ordering(incoming_msg, phone_number)
+        return finished_ordering()
 
 
 

@@ -10,8 +10,8 @@ from sample_menu import *
 import pymongo
 from pymongo import MongoClient
 from flask import Flask, request, make_response, Response
-from app import *
-from primary_methods import *
+#from app import *
+#from primary_methods import *
 
 
 #setup database for all methods

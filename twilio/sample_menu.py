@@ -6,7 +6,7 @@ Sample menu in dictionary form.
 import pymongo
 from pymongo import MongoClient
 cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
-db = cluster["0002"]
+db = cluster["0000"]
 menu_collection = db["info"]
 
 
@@ -55,7 +55,7 @@ fries = {
 
 pepperoni = {
     "name":"Pepperoni",
-    "names_list":["pepperoni", "peperoni"],
+    "names_list":["pepperoni"],
     "add_price":1.75
 }
 
@@ -164,7 +164,7 @@ menu = {
 }
 
 menu_collection.delete_one({"_id":"menu"})
-menu_collection.insert_one({"_id":"menu","main_items":[pizza]})
+menu_collection.insert_one({"_id":"menu","main_items":[pizza, burger, coke, fries_main], "link":"https://uofi.box.com/s/ovex1fgqoutaf9ld57hoo8b69rzedzpm"})
 
 menu_collection.delete_one({"_id":"info"})
 menu_collection.insert_one({

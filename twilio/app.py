@@ -90,7 +90,7 @@ def main():
         infoc = db["info"]
         resp += "\n{name}".format(name=infoc.find_one({"_id":"info"})["name"])
         for name in infoc.find_one({"_id":"info"})["names"]:
-            if name in g.msg:
+            if is_similar(name):
                 from_profile["current_order"] = code
 
     #if the keyword search worked

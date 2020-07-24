@@ -5,6 +5,7 @@ This file contains supplementary methods that may be used in the main file.
 import g
 from more_methods import *
 
+#import plivo
 #from plivo import plivoxml
 from twilio.twiml.messaging_response import MessagingResponse
 
@@ -24,6 +25,14 @@ def send_message(resp):
     response.message(resp)
     return str(response)
 
+
+def send_opening():
+    response = MessagingResponse()
+    message = response.message(g.info["open_intro"])
+    message.media(g.menu["link"])
+    return str(response)
+
+
 '''
 def send_message(resp):
     response = plivoxml.ResponseElement()
@@ -33,6 +42,26 @@ def send_message(resp):
             src=g.to_num,  
             dst=g.from_num))
     return Response(response.to_string(), mimetype='application/xml')
+
+
+def send_opening():
+
+    client = plivo.RestClient("MANTRLMJBHZTFKN2M5NW", "MTFiNDljZTkwNzQ1M2Q2ZDFjNGNiYTVmZTJiYmFh")
+
+    response = client.messages.create(
+        src=g.to_num,
+        dst=g.from_num,
+        media_urls=[info["link"]],
+        type_='mms')
+
+    response2 = plivoxml.ResponseElement()
+    response2.add(
+        plivoxml.MessageElement(
+            g.info["open_intro"],
+            src=g.to_num,  
+            dst=g.from_num))
+    return Response(response.to_string(), mimetype='application/xml')
+
 '''
 
 

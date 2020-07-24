@@ -18,7 +18,7 @@ def first_message():
     g.opc.insert_one({"from_num":g.from_num, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None})
 
     #send the restaurant's custom intro message
-    return send_message(g.info["open_intro"])
+    return send_opening()
 
 
 #triggered if the customer is in the middle of the ordering process

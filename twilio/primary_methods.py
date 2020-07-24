@@ -3,29 +3,22 @@ This contains all the primary methods used in the code. After the section is ide
 """
 
 import g
-from sample_menu import *
+
 import pymongo
 from pymongo import MongoClient
-from app import *
 
 from methods import *
 
-
-
-#setup database
-cluster = MongoClient("mongodb+srv://isidonnelly:1234@cluster0.mgmae.mongodb.net/auto_order?retryWrites=true&w=majority")
-db = cluster["auto_order"]
-opc = db["order_process"]
 
 
 #triggered if the message sent is the first message the customer has sent in 4 hours I think because that is when the session is cleared
 def first_message():
     
     #initialize order object
-    opc.insert_one({"from_num":g.from_num, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None})
+    g.opc.insert_one({"from_num":g.from_num, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None})
 
     #send the restaurant's custom intro message
-    return send_message(menu["open_intro_message"])
+    return send_message(g.info["open_intro"])
 
 
 #triggered if the customer is in the middle of the ordering process
@@ -33,7 +26,7 @@ def ordering_process():
 
     #if the customer indicates they are done ordering
     if "finish" in g.msg:
-        opc.update_one({"from_num":g.from_num}, {"$set":{"section":"finished_ordering"}})
+        g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"finished_ordering"}})
         return send_message("Thank you for your order. It will be processed shortly.")
     
     #get the main item the customer ordered
@@ -54,7 +47,7 @@ def ordering_process():
         current_item = {"main_item":main_item_or_error_code}
         for sublist in main_item_or_error_code["adds_list"]:
             current_item[sublist["name"]] = []
-        opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+        g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
 
         fill_in_sublists()
 
@@ -70,7 +63,12 @@ def sublist_in_q(sublist):
 
 
 def finished_ordering():
-    opc.delete_one({"from_num":g.from_num})
-    return send_message("ur done")
+    g.opc.delete_one({"from_num":g.from_num})
+    cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
+    index_db = cluster["Index"]
+    unc = index_db["user_numbers"]
+    unc.update_one({"_id":"from_num"}, {"$set":{"current_order":None}})
+
+    return send_message("data cleared")
     
     

@@ -5,9 +5,9 @@ Sample menu in dictionary form.
 
 import pymongo
 from pymongo import MongoClient
-cluster = MongoClient("mongodb+srv://isidonnelly:1234@cluster0.mgmae.mongodb.net/auto_order?retryWrites=true&w=majority")
-db = cluster["auto_order"]
-menu_collection = db["menus"]
+cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
+db = cluster["0002"]
+menu_collection = db["info"]
 
 
 #Add On Choices
@@ -163,5 +163,18 @@ menu = {
     "main_items":[pizza, burger, coke, fries_main]
 }
 
-menu_collection.delete_one({"_id":0})
-menu_collection.insert_one({"_id":0,"menu":menu})
+menu_collection.delete_one({"_id":"menu"})
+menu_collection.insert_one({"_id":"menu","main_items":[pizza]})
+
+menu_collection.delete_one({"_id":"info"})
+menu_collection.insert_one({
+    "_id":"info",
+    "name":"Other Restaurant",
+    "names":["other"],
+    "open_intro":"Welcome to the Other Restaurant! Here is our menu. What can I get for you?",
+    "closed_intro":"Welcome to the Other Restaurant! Here is our menu. We are currently closed but will open soon! Our hours are: [hours]",
+    "delivery_time":60,
+    "pickup_time":30,
+    "offers_delivery":True,
+    "is_open":True,
+})

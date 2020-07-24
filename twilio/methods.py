@@ -2,22 +2,15 @@
 This file contains supplementary methods that may be used in the main file.
 """
 
+import g
 
 #from plivo import plivoxml
-import g
 from twilio.twiml.messaging_response import MessagingResponse
-from sample_menu import *
+
 import pymongo
 from pymongo import MongoClient
+
 from flask import Flask, request, make_response, Response
-#from app import *
-#from primary_methods import *
-
-
-#setup database for all methods
-cluster = MongoClient("mongodb+srv://isidonnelly:1234@cluster0.mgmae.mongodb.net/auto_order?retryWrites=true&w=majority")
-db = cluster["auto_order"]
-opc = db["order_process"]
 
 
 """
@@ -54,7 +47,7 @@ def get_main_item():
 
     #gets all the main items included in the user's input string
     possible_main_items = []
-    for main_item in menu["main_items"]:
+    for main_item in g.menu["main_items"]:
         for name in main_item["names_list"]:
             if name in g.msg:
                 possible_main_items.append(main_item)
@@ -105,13 +98,13 @@ def get_main_item():
 
 """
 Makes sure the current_item has all the sides filled out in accordance with min and max values.
-Input: opc, phone number
+Input: g.opc, phone number
 Returns: question if a sublist is not filled out properly
 """
 def assert_current():
 
     #pull the current item from the db
-    current_item = opc.find_one({"from_num":g.from_num})["current_item"]
+    current_item = g.opc.find_one({"from_num":g.from_num})["current_item"]
 
     #iterate through sublist and make sure options match min/max requirements
     for sublist in current_item["main_item"]["adds_list"]:
@@ -126,38 +119,38 @@ def assert_current():
                     current_item[sublist["name"]].remove(subitem)
 
         if length==0:
-            opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":sublist}})
-            opc.update_one({"from_num":g.from_num}, {"$set":{"section":"sublist"}})
+            g.opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":sublist}})
+            g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"sublist"}})
             return send_message(sublist["prompting_question"]+your_options_are(sublist))
 
         if length<sublist["min_choices"]:
             current_item[sublist["name"]] = []
-            opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":sublist}})
-            opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
-            opc.update_one({"from_num":g.from_num}, {"$set":{"section":"sublist"}})
+            g.opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":sublist}})
+            g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+            g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"sublist"}})
             return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min=sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
 
         if length>sublist["max_choices"]:
             current_item[sublist["name"]] = []
-            opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":sublist}})
-            opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
-            opc.update_one({"from_num":g.from_num}, {"$set":{"section":"sublist"}})
+            g.opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":sublist}})
+            g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+            g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"sublist"}})
             return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min = sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
 
     #if none of the sublists had any issues
-    opc.update_one({"from_num":g.from_num}, {"$set":{"section":"ordering_process"}})
+    g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"ordering_process"}})
     resp = ""
-    item_list = opc.find_one({"from_num":g.from_num})["item_list"]
+    item_list = g.opc.find_one({"from_num":g.from_num})["item_list"]
     if item_list == None:
         item_list = []
     item_list.append(current_item)
-    opc.update_one({"from_num":g.from_num}, {"$set":{"item_list":item_list}})
+    g.opc.update_one({"from_num":g.from_num}, {"$set":{"item_list":item_list}})
 
     resp += stringify_order()
     resp += ' \n \nWhat is the next item I can get for you? If you are done text "finished". If you would like to restart text "restart".'
 
-    opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":None}})
-    opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":None}})
+    g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":None}})
+    g.opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":None}})
 
     return send_message(resp)
 
@@ -168,7 +161,7 @@ Input: phone number, msg
 """
 def fill_in_sublists():
     
-    current_item = opc.find_one({"from_num":g.from_num})["current_item"]
+    current_item = g.opc.find_one({"from_num":g.from_num})["current_item"]
     
     for sublist in current_item["main_item"]["adds_list"]:
         
@@ -179,7 +172,7 @@ def fill_in_sublists():
                 if name in g.msg:
                     
                     current_item[sublist["name"]].append(choice)
-                    opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+                    g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
 
 
 
@@ -189,7 +182,7 @@ Input: phone number, msg, specific sublist
 """
 def fill_in_one_sublist(sublist):
 
-    current_item = opc.find_one({"from_num":g.from_num})["current_item"]
+    current_item = g.opc.find_one({"from_num":g.from_num})["current_item"]
 
     for choice in sublist["choice_list"]:
             
@@ -198,14 +191,14 @@ def fill_in_one_sublist(sublist):
             if name in g.msg:
                     
                 current_item[sublist["name"]].append(choice)
-                opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+                g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
 
     #if user did not specify any choices, use the none choice
     if len(current_item[sublist["name"]]) == 0:
         for choice in sublist["choice_list"]:
             if choice["name"] == "None":
                 current_item[sublist["name"]].append(choice)
-                opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+                g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
 
 
 
@@ -218,7 +211,7 @@ Returns: A string, example: "1x Pizza[$8] (Size: Medium[+$2]. Toppings: Pepperon
 def stringify_order():
      
     resp = "YOUR ORDER: "
-    item_list = opc.find_one({"from_num":g.from_num})["item_list"]
+    item_list = g.opc.find_one({"from_num":g.from_num})["item_list"]
 
     for item in item_list:
 
@@ -258,7 +251,7 @@ Returns: Float of total order cost
 """
 def total_cost():
 
-    item_list = opc.find_one({"from_num":g.from_num})["item_list"]
+    item_list = g.opc.find_one({"from_num":g.from_num})["item_list"]
     cost = 0
 
     for item in item_list:

@@ -3,6 +3,7 @@ This file contains supplementary methods that may be used in the main file.
 """
 
 import g
+from more_methods import *
 
 #from plivo import plivoxml
 from twilio.twiml.messaging_response import MessagingResponse
@@ -52,7 +53,14 @@ def get_main_item():
             if name in g.msg:
                 possible_main_items.append(main_item)
     
-    #if the user did not indicate any main items, return error code 0 
+    #if the user did not indicate any main items, use the typo thing
+    if len(possible_main_items) == 0:
+        for main_item in g.menu["main_items"]:
+            for name in main_item["names_list"]:
+                if is_similar(name):
+                    possible_main_items.append(main_item)
+
+    #if that still does not work, return error code 0
     if len(possible_main_items) == 0:
         return 0
 
@@ -169,7 +177,7 @@ def fill_in_sublists():
             
             for name in choice["names_list"]:
                 
-                if name in g.msg:
+                if is_similar(name):
                     
                     current_item[sublist["name"]].append(choice)
                     g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
@@ -188,7 +196,7 @@ def fill_in_one_sublist(sublist):
             
         for name in choice["names_list"]:
                 
-            if name in g.msg:
+            if is_similar(name):
                     
                 current_item[sublist["name"]].append(choice)
                 g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})

@@ -13,7 +13,7 @@ from primary_methods import *
 
 
 def order_index():
-
+    
     #get the order of the phone number
     order = g.opc.find_one({"from_num":g.from_num})
 
@@ -30,9 +30,18 @@ def order_index():
     if order["sublist_in_q"]:
         return sublist_in_q(order["sublist_in_q"])
 
+    #if the customer is answering to pickup or delivery
+    if order["section"] == "pickup_or_delivery":
+        return pickup_or_delivery()
+
+    #if the user needs to type in their address
+    if order["section"] == "get_address":
+        return get_address()
+
     #if the customer is in the ordering process
     if order["section"] == "ordering_process":
         return ordering_process()
+        
 
     #if the customer just indicated they are finished ordering
     if order["section"] == "finished_ordering":

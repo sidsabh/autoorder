@@ -2,6 +2,17 @@
 This file is where we store global variables. They are updated as the info comes in.
 """
 
+import pymongo
+from pymongo import MongoClient
+
+
+#setup database, go straight to the index database
+cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
+index_db = cluster["Index"]
+onc = index_db["our_numbers"]
+unc = index_db["user_numbers"]
+
+
 #The user's phone number
 from_num = None
 

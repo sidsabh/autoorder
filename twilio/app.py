@@ -16,13 +16,6 @@ from methods import *
 from order_index import *
 
 
-#setup database, go straight to the index database
-cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
-index_db = cluster["Index"]
-onc = index_db["our_numbers"]
-unc = index_db["user_numbers"]
-
-
 #setup flask app
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -44,18 +37,18 @@ def main():
     g.to_num = request.values.get('To', None)
 
     #if the user does not have a profile in our database
-    if not unc.find_one({"_id":g.from_num}):
-        unc.insert_one({"_id":g.from_num, "current_order":None})
+    if not g.unc.find_one({"_id":g.from_num}):
+        g.unc.insert_one({"_id":g.from_num, "current_order":None})
     
     #get the documents of the user and the number they are texting
-    from_profile = unc.find_one({"_id":g.from_num})
-    to_profile = onc.find_one({"_id":g.to_num})
+    from_profile = g.unc.find_one({"_id":g.from_num})
+    to_profile = g.onc.find_one({"_id":g.to_num})
     
     #if the user is known to be in the middle of an order
     if from_profile["current_order"]:
 
         #set some global variables based on code
-        rdb = cluster["{code}".format(code=from_profile["current_order"])]
+        rdb = g.cluster["{code}".format(code=from_profile["current_order"])]
         g.opc = rdb["order_process"]
         g.menu = rdb["info"].find_one({"_id":"menu"})
         g.info = rdb["info"].find_one({"_id":"info"})
@@ -72,10 +65,10 @@ def main():
         from_profile["current_order"] = to_profile["codes"][0]
 
         #update the database
-        unc.update_one({"_id":g.from_num}, {"$set":{"current_order":from_profile["current_order"]}})
+        g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":from_profile["current_order"]}})
 
         #set some global variables based on code
-        rdb = cluster["{code}".format(code=from_profile["current_order"])]
+        rdb = g.cluster["{code}".format(code=from_profile["current_order"])]
         g.opc = rdb["order_process"]
         g.menu = rdb["info"].find_one({"_id":"menu"})
         g.info = rdb["info"].find_one({"_id":"info"})
@@ -86,7 +79,7 @@ def main():
     #keyword search, start to construct response
     resp = to_profile["index_message"]+" Your options are: \n"
     for code in to_profile["codes"]:
-        db = cluster["{code}".format(code=code)]
+        db = g.cluster["{code}".format(code=code)]
         infoc = db["info"]
         resp += "\n{name}".format(name=infoc.find_one({"_id":"info"})["name"])
         for name in infoc.find_one({"_id":"info"})["names"]:
@@ -97,10 +90,10 @@ def main():
     if from_profile["current_order"]:
 
         #update the database
-        unc.update_one({"_id":g.from_num}, {"$set":{"current_order":from_profile["current_order"]}})
+        g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":from_profile["current_order"]}})
 
         #set some global variables based on code
-        rdb = cluster["{code}".format(code=from_profile["current_order"])]
+        rdb = g.cluster["{code}".format(code=from_profile["current_order"])]
         g.opc = rdb["order_process"]
         g.menu = rdb["info"].find_one({"_id":"menu"})
         g.info = rdb["info"].find_one({"_id":"info"})

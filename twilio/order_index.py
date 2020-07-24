@@ -48,4 +48,9 @@ def order_index():
         return finished_ordering()
 
 
+    #if none of these, then an error has occured
+    else:
+        return send_message("Sorry, an error has occured")
+
+
 

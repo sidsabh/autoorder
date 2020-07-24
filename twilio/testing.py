@@ -1,11 +1,11 @@
-from flask import Flask, request, session
-from sample_menu import *
-from methods import *
+#from flask import Flask, request, session
+#from sample_menu import *
+#from methods import *
 import pymongo
 from pymongo import MongoClient
-from primary_methods import *
+#from primary_methods import *
 
-import g
+#import g
 
 
 #setup database, go straight to the index database
@@ -14,5 +14,6 @@ index_db = cluster["Index"]
 onc = index_db["our_numbers"]
 unc = index_db["user_numbers"]
 
-onc.insert_one({"_id":"+12676276054", "codes":["0000"], "index_message":None})
+onc.delete_one({"_id":"+17143847583"})
+onc.insert_one({"_id":"17143847583", "codes":["0000"], "index_message":None})
 

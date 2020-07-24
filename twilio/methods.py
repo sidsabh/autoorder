@@ -5,8 +5,8 @@ This file contains supplementary methods that may be used in the main file.
 import g
 from more_methods import *
 
-import plivo
-from plivo import plivoxml
+#import plivo
+#from plivo import plivoxml
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 
@@ -15,7 +15,7 @@ from pymongo import MongoClient
 
 from flask import Flask, request, make_response, Response
 
-'''
+
 """
 Sends a message.
 Input: Message to be sent (string)
@@ -60,8 +60,10 @@ def send_message_and_menu(resp):
     response = client.messages.create(
         src=g.to_num,
         dst=g.from_num,
+        text="",
         media_urls=[g.menu["link"]],
-        type_='mms')
+        type_='mms'
+        )
 
     response2 = plivoxml.ResponseElement()
     response2.add(
@@ -69,8 +71,8 @@ def send_message_and_menu(resp):
             resp,
             src=g.to_num,  
             dst=g.from_num))
-    return Response(response.to_string(), mimetype='application/xml')
-
+    return Response(response2.to_string(), mimetype='application/xml')
+'''
 
 
 """

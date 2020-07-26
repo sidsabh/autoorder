@@ -27,7 +27,7 @@ def main():
 
     #get the message that was sent and make it all lowercase
     #CHANGE TO 'Text' WHEN USING PLIVO 
-    g.msg = request.values.get('Text', None)
+    g.msg = request.values.get('Text')
     g.msg = g.msg.lower()
 
     #get the phone number of the incoming msg

@@ -57,8 +57,6 @@ def is_similar(Word):
             if Left_Count + Right_Count == len(Sen_Word): Same = True
 
 
-
-            
     return Same
 
 

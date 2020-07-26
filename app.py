@@ -1,17 +1,13 @@
 from flask import Flask, render_template, url_for, request, session, redirect, jsonify
 from flask_pymongo import PyMongo
-#from flask_talisman import Talisman
 from bson.json_util import dumps
+from functools import wraps
 import bcrypt
 import time
+import pymongo
 
 app = Flask(__name__)
-#Talisman(app)
-
-app.config['MONGO_DBNAME'] = 'heroku_8qfx8bg5'
-app.config['MONGO_URI'] = 'mongodb://admin:robin123@ds261077.mlab.com:61077/heroku_8qfx8bg5?retryWrites=false'
-
-mongo = PyMongo(app)
+app.secret_key = b'\xcc^\x91\xea\x17-\xd0W\x03\xa7\xf8J0\xac8\xc5'
 
 def get_random_string(length):
     # Random string with the combination of lower and upper case
@@ -19,11 +15,47 @@ def get_random_string(length):
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
 
+
+# Database
+'''
+client = pymongo.MongoClient('localhost', 27017)
+db = client.user_login_system
+'''
+app.config['MONGO_DBNAME'] = 'heroku_8qfx8bg5'
+app.config['MONGO_URI'] = 'mongodb://admin:robin123@ds261077.mlab.com:61077/heroku_8qfx8bg5?retryWrites=false'
+mongo = PyMongo(app)
+
+# Decorators
+def login_required(f):
+  @wraps(f)
+  def wrap(*args, **kwargs):
+    if 'logged_in' in session:
+      return f(*args, **kwargs)
+    else:
+      return redirect('/')
+  
+  return wrap
+
+# Routes
+from user import routes
+
+@app.route('/')
+def home():
+  return render_template('sign-in.html')
+
+@app.route('/dashboard/')
+@login_required
+def dashboard():
+  return render_template('index.html')
+
+
+'''
 @app.route('/')
 def index():
     if 'username' in session:
         return 'You are logged in as ' + session['username']
-    return render_template('sign-in.html')
+    #return render_template('sign-in.html')
+    return render_template('index.html')
 
 
 @app.route('/login', methods=['POST'])
@@ -56,6 +88,7 @@ def register():
         return 'That username already exists!'
 
     return render_template('register.html')
+'''
 
 
 @app.route('/orders')
@@ -96,6 +129,8 @@ RETURN
 }
 
 """
+
+
 @app.route('/api/orders/add', methods=['POST'])
 def add():
     order = {
@@ -125,6 +160,8 @@ RETURN
 200
 
 """
+
+
 @app.route('/api/orders/remove', methods=['POST'])
 def remove():
     mongo.db.orders.delete_many({"order_id": request.json["order_id"]})
@@ -132,5 +169,4 @@ def remove():
 
 
 if __name__ == '__main__':
-    app.secret_key = 'mysecret'
     app.run(debug=True)

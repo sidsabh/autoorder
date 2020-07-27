@@ -15,6 +15,9 @@ from primary_methods import *
 from methods import *
 from order_index import *
 
+from .primary_methods import session
+import stripe
+stripe.api_key = 'sk_test_51H7n9PDTJ2YcvBWss1pfBvdXC70jEZ8wV4vpVhF0dViTlNRc9kRigRMJfJSoi6lYCJclszW3Ejx9qDXcCWwvtWyF00KHSY6yyV'
 
 #setup flask app
 app = Flask(__name__)
@@ -105,6 +108,22 @@ def main():
     else:
         return send_message(resp)
 
+
+
+@app.route('/')
+def index():
+
+    return render_template(
+        'index.html', 
+        checkout_session_id=session['id'], 
+        checkout_public_key=app.config['STRIPE_PUBLIC_KEY']
+    )
+
+
+
+@app.route('/thanks')
+def thanks():
+    return render_template('thanks.html')
 
 
 

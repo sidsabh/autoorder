@@ -9,6 +9,8 @@ from pymongo import MongoClient
 
 from methods import *
 
+import stripe
+stripe.api_key = 'sk_test_51H7n9PDTJ2YcvBWss1pfBvdXC70jEZ8wV4vpVhF0dViTlNRc9kRigRMJfJSoi6lYCJclszW3Ejx9qDXcCWwvtWyF00KHSY6yyV'
 
 
 #triggered if the message sent is the first message the customer has sent in 4 hours I think because that is when the session is cleared
@@ -114,6 +116,24 @@ def sublist_in_q(sublist):
 
 
 def finished_ordering():
+
+
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price_data': {
+                'unit_amount': orderTotal,
+                'currency': 'usd',
+                'product': 'prod_HifPkxqBklYeQl',
+            },
+            'quantity': 1,
+        }],
+        mode='payment',
+        success_url=url_for('app.thanks', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url=url_for('app.index', _external=True),
+    )
+
+
     g.opc.delete_one({"from_num":g.from_num})
     g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":None}})
 

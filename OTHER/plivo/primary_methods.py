@@ -77,7 +77,7 @@ def ordering_process():
     #if the customer indicates they are done ordering
     if is_similar("finish"):
         g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"finished_ordering"}})
-        return send_message("Thank you for your order. We are working on sending a link for payment. Text anything to clear your data and order again.")
+        return checkout()
     
     #get the main item the customer ordered
     main_item_or_error_code = get_main_item()

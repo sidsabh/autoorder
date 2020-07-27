@@ -6,7 +6,7 @@ This file is mainly for parsing the database to find the user and define global 
 
 import g
 
-from flask import Flask, request, session
+from flask import Flask, request, session, render_template
 
 import pymongo
 from pymongo import MongoClient
@@ -15,7 +15,6 @@ from primary_methods import *
 from methods import *
 from order_index import *
 
-from primary_methods import session
 
 #setup flask app
 app = Flask(__name__)
@@ -105,6 +104,33 @@ def main():
     #if the program fails to fill in the current order, send an index message
     else:
         return send_message(resp)
+
+
+@app.route('/')
+def index3():
+   
+    return render_template(
+        'index3.html',  
+    )
+
+@app.route('/<id>')
+def index2(id):
+    g.checkout_id = id
+    
+    return render_template(
+        'index3.html'
+    )
+  
+@app.route('/stripe_pay')
+def stripe_pay():
+    
+    return {
+        'checkout_session_id': g.checkout_id, 
+        'checkout_public_key': 'pk_test_51H7n9PDTJ2YcvBWsgWnXQ3VC2Wh4EbN41ftVHS3hnxLTl2TEZyRUnUcFvpj3B89xsmNEeXJK0PgYhBAezna4iVP800Vrcrphbq'
+    }
+    
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

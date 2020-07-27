@@ -32,3 +32,8 @@ info = None
 
 #order process collection
 opc = None
+
+
+
+#checkout id
+checkout_id = None

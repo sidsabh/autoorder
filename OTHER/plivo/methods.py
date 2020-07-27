@@ -11,7 +11,11 @@ from plivo import plivoxml
 import pymongo
 from pymongo import MongoClient
 
-from flask import Flask, request, make_response, Response
+import stripe
+stripe.api_key = 'sk_test_51H7n9PDTJ2YcvBWss1pfBvdXC70jEZ8wV4vpVhF0dViTlNRc9kRigRMJfJSoi6lYCJclszW3Ejx9qDXcCWwvtWyF00KHSY6yyV'
+
+
+from flask import Flask, request, make_response, Response, url_for
 
 
 def send_message(resp):
@@ -217,6 +221,31 @@ def fill_in_one_sublist(sublist):
             if choice["name"] == "None":
                 current_item[sublist["name"]].append(choice)
                 g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+
+
+"""
+Sends the user a link to checkout.
+"""
+def checkout():
+  
+    session = stripe.checkout.Session.create(
+        payment_method_types = ['card'],
+        line_items=[{
+            
+            'price_data': {
+                'unit_amount': int(total_cost()*100),
+                'currency': 'usd',
+                'product': 'prod_HifPkxqBklYeQl',
+        },
+        'quantity': 1,
+        }],
+        mode='payment',
+        success_url='https://www.google.com',
+        cancel_url='https://www.google.com',
+    )
+
+   
+    return send_message("localhost:5000/{id}".format(id=session.id))
 
 
 

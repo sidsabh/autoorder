@@ -244,8 +244,9 @@ def checkout():
         cancel_url='https://www.google.com',
     )
 
-   
-    return send_message("http://localhost:5000/checkout/{id}".format(id=session.id))
+    g.opc.update_one({"from_num":g.from_num}, {"$set":{"payment_intent":session.payment_intent}})
+
+    return send_message("Here is your link to checkout. Your order will be processed once you pay. http://localhost:8000/checkout/{id}".format(id=session.id))
 
 
 

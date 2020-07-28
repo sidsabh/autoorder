@@ -42,6 +42,9 @@ def order_index():
     if order["section"] == "ordering_process":
         return ordering_process()
         
+    #if the customer is entering comments
+    if order["section"] == "comments":
+        return comments()
 
     #if the customer just indicated they are finished ordering
     if order["section"] == "finished_ordering":

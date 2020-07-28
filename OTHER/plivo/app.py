@@ -6,7 +6,7 @@ This file is mainly for parsing the database to find the user and define global 
 
 import g
 
-from flask import Flask, request, session, render_template
+from flask import Flask, request, session, render_template, abort
 
 import pymongo
 from pymongo import MongoClient
@@ -105,6 +105,45 @@ def main():
     else:
         return send_message(resp)
 
+
+
+#Stripe webhook for when payment is completed
+@app.route("/checkedout", methods=['POST'])
+def checkedout():
+
+    print("webhook called!")
+
+    if request.content_length > 1024*1024:
+        print("request too large")
+        abort(400)
+
+    payload = request.get_data()
+    sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
+    endpoint_secret = 'whsec_S2gZaNvumSOmvea1MxpMJ84eBMr63Hge'
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+        payload, sig_header, endpoint_secret
+    )
+
+    except ValueError as e:
+        # Invalid payload
+        print("invalid payload!")
+        return {}, 400
+
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        print("invalid signature!")
+        return {}, 400
+
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        print(session)
+
+
+    return {}
 
 
 

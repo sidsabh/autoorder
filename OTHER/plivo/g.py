@@ -34,6 +34,3 @@ info = None
 opc = None
 
 
-
-#checkout id
-checkout_id = None

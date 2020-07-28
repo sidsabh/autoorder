@@ -7,7 +7,7 @@ from pymongo import MongoClient
 
 #import g
 import stripe
-
+'''
 stripe.api_key = 'sk_test_51H7n9PDTJ2YcvBWss1pfBvdXC70jEZ8wV4vpVhF0dViTlNRc9kRigRMJfJSoi6lYCJclszW3Ejx9qDXcCWwvtWyF00KHSY6yyV'
 
 session = stripe.checkout.Session.create(
@@ -27,4 +27,10 @@ session = stripe.checkout.Session.create(
     )
 
 print(session.id)
+'''
+
+cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
+db = cluster["Index"]
+col = db["our_numbers"]
+col.insert_one({"_id":"14136672209", "codes":["0000"], "index_message":None})
 

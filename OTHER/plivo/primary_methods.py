@@ -22,7 +22,7 @@ def first_message():
     if g.info["is_open"]:
 
         #initialize order object
-        g.opc.insert_one({"from_num":g.from_num, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None})
+        g.opc.insert_one({"from_num":g.from_num, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
 
         #if the restaurant offers delivery
         if g.info["offers_delivery"]:
@@ -76,8 +76,8 @@ def ordering_process():
 
     #if the customer indicates they are done ordering
     if is_similar("finish"):
-        g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"finished_ordering"}})
-        return checkout()
+        g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"comments"}})
+        return send_message('Please text anything you would like the chef to know about your order. If you have no comments just text "none".')
     
     #get the main item the customer ordered
     main_item_or_error_code = get_main_item()
@@ -111,6 +111,15 @@ def sublist_in_q(sublist):
     fill_in_one_sublist(sublist)
     return(assert_current())
 
+
+#if the user just texted their comments
+def comments():
+
+    if not is_similar("none"):
+        g.opc.update_one({"from_num":g.from_num}, {"$set":{"comments":g.msg}})
+    
+    g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"finished_ordering"}})
+    return checkout()
 
 def finished_ordering():
     g.opc.delete_one({"from_num":g.from_num})

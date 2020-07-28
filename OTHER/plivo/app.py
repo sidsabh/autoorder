@@ -106,31 +106,14 @@ def main():
         return send_message(resp)
 
 
-@app.route('/')
-def index3():
-   
-    return render_template(
-        'index3.html',  
-    )
+@app.route('/checkout/<id>')
+def checkout(id):
 
-@app.route('/<id>')
-def index2(id):
-    g.checkout_id = id
-    
-    return render_template(
-        'index3.html'
-    )
-  
-@app.route('/stripe_pay')
-def stripe_pay():
-    
-    return {
-        'checkout_session_id': g.checkout_id, 
-        'checkout_public_key': 'pk_test_51H7n9PDTJ2YcvBWsgWnXQ3VC2Wh4EbN41ftVHS3hnxLTl2TEZyRUnUcFvpj3B89xsmNEeXJK0PgYhBAezna4iVP800Vrcrphbq'
-    }
-    
+    return render_template('checkout.html', SESSION_ID=id, PUBLIC_KEY='pk_test_51H7n9PDTJ2YcvBWsgWnXQ3VC2Wh4EbN41ftVHS3hnxLTl2TEZyRUnUcFvpj3B89xsmNEeXJK0PgYhBAezna4iVP800Vrcrphbq')
+
 
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+

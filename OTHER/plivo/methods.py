@@ -245,7 +245,7 @@ def checkout():
     )
 
    
-    return send_message("localhost:5000/{id}".format(id=session.id))
+    return send_message("http://localhost:5000/checkout/{id}".format(id=session.id))
 
 
 

@@ -45,10 +45,8 @@ def delete_old():
                 #g.unc.update_one({"_id":user["_id"]}, {"$set":{"current_order":user["current_order"]}})
 
     for dic in items_to_delete:
-        code = dic["user"][dic["num"]]["code"]
-
-        cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
-        rest_db = cluster[code]
+        code = dic["user"]["current_order"][dic["num"]]["code"]
+        rest_db = g.cluster[code]
         opc2 = rest_db["order_process"]
         opc2.delete_one({"from_num":dic["user"]["_id"]})
         dic["user"]["current_order"].pop(dic["num"])
@@ -58,7 +56,7 @@ def delete_old():
 
 #create scheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=delete_old, trigger="interval", seconds=3)
+scheduler.add_job(func=delete_old, trigger="interval", seconds=30)
 scheduler.start()
 
 
@@ -87,6 +85,10 @@ def main():
     
     #if the user is known to be in the middle of an order
     if from_profile["current_order"].get(g.to_num):
+
+        #reset time
+        from_profile["current_order"][g.to_num]["time"] = str(datetime.datetime.today())
+        g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":from_profile["current_order"]}})
 
         #set some global variables based on code
         rdb = g.cluster["{code}".format(code=from_profile["current_order"][g.to_num]["code"])]
@@ -126,6 +128,7 @@ def main():
         for name in infoc.find_one({"_id":"info"})["names"]:
             if is_similar(name):
                 from_profile["current_order"][g.to_num]["code"] = code
+                from_profile["current_order"][g.to_num]["time"] = str(datetime.datetime.today())
 
     #if the keyword search worked
     if from_profile["current_order"][g.to_num]["code"]:
@@ -181,10 +184,25 @@ def checkedout():
     # Handle the checkout.session.completed event
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        print(session)
+        
+        pi = session["payment_intent"]
+        for code in g.codes:
+            db=cluster["{code}".format(code=code)]
+            opc3=db["order_process"]
+            correct_order = opc3.find_one({"payment_intent":pi})
+            if correct_order:
+                if correct_order["method_of_getting_food"] == "pickup":
+                    resp = "Your order has been processed! Your food will be ready for pickup in about {min} minutes.".format(db["info"].find_one({"_id":"info"})["pickup_time"])
+                if correct_order["method_of_getting_food"] == "delivery":
+                    resp = "Your order has been processed! Your food will be delivered in about {min} minutes.".format(db["info"].find_one({"_id":"info"})["delivery_time"])
+                send
+                
+
 
 
     return {}
+
+
 
 
 #shutdown the scheduler when the app shuts down

@@ -33,4 +33,7 @@ info = None
 #order process collection
 opc = None
 
+#all restaurant codes
+codes = ["0000","0001","0002"]
+
 

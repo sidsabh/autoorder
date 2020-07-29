@@ -16,7 +16,7 @@ def first_message():
     #if the restaurant is closed
     if not g.info["is_open"]:
         g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":None}})
-        return send_message_and_menu(g.info["closed_intro"]+" Our menu is on its way.")
+        return send_message_and_menu(g.info["closed_intro"]+" Here is our menu.")
     
     #if the restaurant is open
     if g.info["is_open"]:
@@ -27,12 +27,12 @@ def first_message():
         #if the restaurant offers delivery
         if g.info["offers_delivery"]:
             g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"pickup_or_delivery"}})
-            return send_message_and_menu(g.info["open_intro"]+' Our menu is on its way. Is this order for pickup or delivery? \n\nText "restart" at any time to restart the whole process.')
+            return send_message_and_menu(g.info["open_intro"]+' Here is our menu. Is this order for pickup or delivery? \n\nText "restart" at any time to restart the whole process.')
         
         #if the restaurant does not offer delivery
         else:
             g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"ordering_process"}})
-            return send_message_and_menu(g.info["open_intro"]+' This order will be for pickup. Our menu is on its way. What is the first item we can get for you? \n\nText "restart" at any time to restart the whole process.')
+            return send_message_and_menu(g.info["open_intro"]+' This order will be for pickup. Here is our menu. What is the first item we can get for you? \n\nText "restart" at any time to restart the whole process.')
 
 
 

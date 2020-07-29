@@ -9,6 +9,9 @@ from more_methods import *
 #from plivo import plivoxml
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
+account_sid = "AC3971c871eb7f952d5a11646897d50feb"
+auth_token = "b95dbec5849ab614c0f8248281096924"
+client = Client(account_sid, auth_token)
 
 import pymongo
 from pymongo import MongoClient
@@ -57,14 +60,18 @@ def send_message(resp):
     return str(response)
 
 def send_message_and_menu(resp):
-    
-    account_sid = "AC3971c871eb7f952d5a11646897d50feb"
-    auth_token = "b95dbec5849ab614c0f8248281096924"
-    client = Client(account_sid, auth_token)
     response = MessagingResponse()
     message = response.message(resp)
     message.media(g.menu["link"])
     return str(response)
+
+def send_message_client(message, to_no, from_no):
+    client.messages.create(
+    to=to_no,
+    from_=from_no,
+    body=message
+    )
+
 
 """
 Finds the main item the customer wants.

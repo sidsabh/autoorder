@@ -186,16 +186,25 @@ def checkedout():
         session = event['data']['object']
         
         pi = session["payment_intent"]
+        print("HI")
         for code in g.codes:
-            db=cluster["{code}".format(code=code)]
+            db=g.cluster["{code}".format(code=code)]
             opc3=db["order_process"]
             correct_order = opc3.find_one({"payment_intent":pi})
             if correct_order:
                 if correct_order["method_of_getting_food"] == "pickup":
-                    resp = "Your order has been processed! Your food will be ready for pickup in about {min} minutes.".format(db["info"].find_one({"_id":"info"})["pickup_time"])
+                    resp = "Your order has been processed! Your food will be ready for pickup in about {min} minutes.".format(min=db["info"].find_one({"_id":"info"})["pickup_time"])
                 if correct_order["method_of_getting_food"] == "delivery":
-                    resp = "Your order has been processed! Your food will be delivered in about {min} minutes.".format(db["info"].find_one({"_id":"info"})["delivery_time"])
-                send
+                    resp = "Your order has been processed! Your food will be delivered in about {min} minutes.".format(min=db["info"].find_one({"_id":"info"})["delivery_time"])
+                
+                send_message_client(resp, correct_order["from_num"], correct_order["to_num"])
+                db["orders"].insert_one(correct_order)
+                opc3.delete_one({"payment_intent":correct_order["payment_intent"]})
+
+                use = g.unc.find_one({"_id":correct_order["from_num"]})
+                use["current_order"].pop(correct_order["to_num"])
+                g.unc.update_one({"_id":correct_order["from_num"]}, {"$set":{"current_order":use["current_order"]}})
+                break
                 
 
 

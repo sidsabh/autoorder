@@ -22,7 +22,7 @@ def first_message():
     if g.info["is_open"]:
 
         #initialize order object
-        g.opc.insert_one({"from_num":g.from_num, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
+        g.opc.insert_one({"from_num":g.from_num, "to_num":g.to_num, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
 
         #if the restaurant offers delivery
         if g.info["offers_delivery"]:

@@ -263,13 +263,13 @@ def checkout():
         'quantity': 1,
         }],
         mode='payment',
-        success_url='https://www.google.com',
-        cancel_url='https://www.google.com',
+        success_url='http://dashboard.autoordersystems.com/success/',
+        cancel_url='http://dashboard.autoordersystems.com/failure/',
     )
 
     g.opc.update_one({"from_num":g.from_num}, {"$set":{"payment_intent":session.payment_intent}})
 
-    return send_message("Here is your link to checkout. Your order will be processed once you pay. http://localhost:8000/checkout/{id}".format(id=session.id))
+    return send_message("Here is your link to checkout. Your order will be processed once you pay. http://dashboard.autoordersystems.com/checkout/{id}".format(id=session.id))
 
 
 

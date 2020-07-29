@@ -5,8 +5,10 @@ This file contains supplementary methods that may be used in the main file.
 import g
 from more_methods import *
 
-import plivo
-from plivo import plivoxml
+#import plivo
+#from plivo import plivoxml
+from twilio.twiml.messaging_response import MessagingResponse
+from twilio.rest import Client
 
 import pymongo
 from pymongo import MongoClient
@@ -17,7 +19,7 @@ stripe.api_key = 'sk_test_51H7n9PDTJ2YcvBWss1pfBvdXC70jEZ8wV4vpVhF0dViTlNRc9kRig
 
 from flask import Flask, request, make_response, Response, url_for
 
-
+'''
 def send_message(resp):
     response = plivoxml.ResponseElement()
     response.add(
@@ -47,8 +49,22 @@ def send_message_and_menu(resp):
             src=g.to_num,  
             dst=g.from_num))
     return Response(response2.to_string(), mimetype='application/xml')
+'''
 
+def send_message(resp):
+    response = MessagingResponse()
+    response.message(resp)
+    return str(response)
 
+def send_message_and_menu(resp):
+    
+    account_sid = "AC3971c871eb7f952d5a11646897d50feb"
+    auth_token = "b95dbec5849ab614c0f8248281096924"
+    client = Client(account_sid, auth_token)
+    response = MessagingResponse()
+    message = response.message(resp)
+    message.media(g.menu["link"])
+    return str(response)
 
 """
 Finds the main item the customer wants.

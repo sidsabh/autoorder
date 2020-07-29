@@ -123,7 +123,8 @@ def comments():
 
 def finished_ordering():
     g.opc.delete_one({"from_num":g.from_num})
-    g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":None}})
+    #fix this later
+    #g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":None}})
 
     return send_message("data cleared")
     

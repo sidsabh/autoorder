@@ -15,10 +15,51 @@ from primary_methods import *
 from methods import *
 from order_index import *
 
+import time
+import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
+
+import datetime
 
 #setup flask app
 app = Flask(__name__)
 app.config.from_object(__name__)
+
+#scheduler function to delete all the old orders
+def delete_old():
+
+    current_time = datetime.datetime.today()
+    items_to_delete = []
+
+    users = g.unc.find({})
+    for user in users:
+        keys = user["current_order"].keys()
+        for num in keys:
+            order_time_str = user["current_order"][num]["time"]
+            form = "%Y-%m-%d %H:%M:%S.%f"
+            order_time = datetime.datetime.strptime(order_time_str, form)
+            difference = current_time - order_time
+            if difference.total_seconds()/60 > 20:
+                items_to_delete.append({"user":user, "num":num})
+                #user["current_order"].pop(num)
+                #g.unc.update_one({"_id":user["_id"]}, {"$set":{"current_order":user["current_order"]}})
+
+    for dic in items_to_delete:
+        code = dic["user"][dic["num"]]["code"]
+
+        cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
+        rest_db = cluster[code]
+        opc2 = rest_db["order_process"]
+        opc2.delete_one({"from_num":dic["user"]["_id"]})
+        dic["user"]["current_order"].pop(dic["num"])
+        g.unc.update_one({"_id":dic["user"]["_id"]}, {"$set":{"current_order":dic["user"]["current_order"]}})
+
+
+
+#create scheduler
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=delete_old, trigger="interval", seconds=3)
+scheduler.start()
 
 
 #entry point for when message comes in
@@ -27,7 +68,7 @@ def main():
 
     #get the message that was sent and make it all lowercase
     #CHANGE TO 'Text' WHEN USING PLIVO 
-    g.msg = request.values.get('Text')
+    g.msg = request.values.get('Body')
     g.msg = g.msg.lower()
 
     #get the phone number of the incoming msg
@@ -38,17 +79,17 @@ def main():
 
     #if the user does not have a profile in our database
     if not g.unc.find_one({"_id":g.from_num}):
-        g.unc.insert_one({"_id":g.from_num, "current_order":None})
+        g.unc.insert_one({"_id":g.from_num, "current_order":{}})
     
     #get the documents of the user and the number they are texting
     from_profile = g.unc.find_one({"_id":g.from_num})
     to_profile = g.onc.find_one({"_id":g.to_num})
     
     #if the user is known to be in the middle of an order
-    if from_profile["current_order"]:
+    if from_profile["current_order"].get(g.to_num):
 
         #set some global variables based on code
-        rdb = g.cluster["{code}".format(code=from_profile["current_order"])]
+        rdb = g.cluster["{code}".format(code=from_profile["current_order"][g.to_num]["code"])]
         g.opc = rdb["order_process"]
         g.menu = rdb["info"].find_one({"_id":"menu"})
         g.info = rdb["info"].find_one({"_id":"info"})
@@ -62,13 +103,13 @@ def main():
 
     #if the number only has one restaurant attached to it
     if len(to_profile["codes"]) == 1:
-        from_profile["current_order"] = to_profile["codes"][0]
+        from_profile["current_order"][g.to_num] = {"code":to_profile["codes"][0],"time":str(datetime.datetime.today())}
 
         #update the database
         g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":from_profile["current_order"]}})
 
         #set some global variables based on code
-        rdb = g.cluster["{code}".format(code=from_profile["current_order"])]
+        rdb = g.cluster["{code}".format(code=from_profile["current_order"][g.to_num]["code"])]
         g.opc = rdb["order_process"]
         g.menu = rdb["info"].find_one({"_id":"menu"})
         g.info = rdb["info"].find_one({"_id":"info"})
@@ -84,16 +125,16 @@ def main():
         resp += "\n{name}".format(name=infoc.find_one({"_id":"info"})["name"])
         for name in infoc.find_one({"_id":"info"})["names"]:
             if is_similar(name):
-                from_profile["current_order"] = code
+                from_profile["current_order"][g.to_num]["code"] = code
 
     #if the keyword search worked
-    if from_profile["current_order"]:
+    if from_profile["current_order"][g.to_num]["code"]:
 
         #update the database
         g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":from_profile["current_order"]}})
 
         #set some global variables based on code
-        rdb = g.cluster["{code}".format(code=from_profile["current_order"])]
+        rdb = g.cluster["{code}".format(code=from_profile["current_order"][g.to_num]["code"])]
         g.opc = rdb["order_process"]
         g.menu = rdb["info"].find_one({"_id":"menu"})
         g.info = rdb["info"].find_one({"_id":"info"})
@@ -146,7 +187,10 @@ def checkedout():
     return {}
 
 
+#shutdown the scheduler when the app shuts down
+atexit.register(lambda: scheduler.shutdown())
 
+#run the flask app
 if __name__ == "__main__":
     app.run(debug=True)
 

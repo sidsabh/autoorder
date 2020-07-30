@@ -19,13 +19,13 @@ def first_message():
     if not g.info["is_open"]:
         #delete the order
         g.delete_one(current_order())
-        return send_message_and_menu(g.info["closed_intro"]+" Here is our menu.")
+        return send_message_and_menu(g.info["closed_intro"]+" Our menu will arrive momentarily.")
     
     #if the restaurant is open
     if g.info["is_open"]:
 
         #initialize response
-        resp = g.info["open_intro"]+" Here is our menu."
+        resp = g.info["open_intro"]+" Our menu will arrive momentarily."
 
         #if the restaurant offers delivery
         if g.info["offers_delivery"]:
@@ -42,6 +42,10 @@ def first_message():
         #if there is an index
         if len(g.onc.find_one({"_id":g.to_num})["codes"]) > 1:
             resp += ' Text "index" at any time to cancel your order and return to the restaurant index.'
+
+        #if this is the demo number
+        if g.to_num == "+12676276054":
+            resp += "\n\nNote: this number is a ONLY A DEMO."
 
         return send_message_and_menu(resp)
 
@@ -106,7 +110,7 @@ def ordering_process():
     if main_item_or_error_code == 1:
         return send_message("It seems you have order too many main items. Please try again and only order one main item.")
     if main_item_or_error_code == 2:
-        return send_message("It seems you have order too many main items. Please try again and only order one main item. ERROR CODE 2")
+        return send_message("It seems you have order too many main items. Please try again and only order one main item.")
     
     #if a specific main item was detected
     else:
@@ -142,8 +146,7 @@ def comments():
 
 #if the user is done ordering, NEEDS WORK
 def finished_ordering():
-    g.opc.delete_one(current_order())
 
-    return send_message("data cleared")
+    return send_message("Please finish paying.")
     
     

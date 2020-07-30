@@ -11,9 +11,9 @@ from flask import Flask, request, session, render_template, abort
 import pymongo
 from pymongo import MongoClient
 
+from order_index import *
 from primary_methods import *
 from methods import *
-from order_index import *
 from more_methods import *
 
 import time
@@ -22,16 +22,27 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 import datetime
 
+#site for error handling
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+sentry_sdk.init(
+    dsn="https://7b2d5ce82959444faf33106616fa6915@o427904.ingest.sentry.io/5372681",
+    integrations=[FlaskIntegration()]
+)
+
 #setup flask app
 app = Flask(__name__)
 app.config.from_object(__name__)
 
+
 #scheduler function to delete all the old orders
 def delete_old():
 
+    #get current time and initiate a list
     current_time = datetime.datetime.today()
     items_to_delete = []
 
+    #get all orders and iterate through them
     orders = g.opc.find({})
     for order in orders:
 

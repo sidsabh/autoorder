@@ -60,9 +60,14 @@ def send_message(resp):
     return str(response)
 
 def send_message_and_menu(resp):
+    client.messages.create(
+    to=g.from_num,
+    from_=g.to_num,
+    body=None,
+    media_url=g.menu["link"]
+    )
     response = MessagingResponse()
     message = response.message(resp)
-    message.media(g.menu["link"])
     return str(response)
 
 def send_message_client(message, to_no, from_no):
@@ -88,14 +93,16 @@ def get_main_item():
     for main_item in g.menu["main_items"]:
         for name in main_item["names_list"]:
             if name in g.msg:
-                possible_main_items.append(main_item)
+                if main_item not in possible_main_items:
+                    possible_main_items.append(main_item)
     
     #if the user did not indicate any main items, use the typo thing
     if len(possible_main_items) == 0:
         for main_item in g.menu["main_items"]:
             for name in main_item["names_list"]:
                 if is_similar(name):
-                    possible_main_items.append(main_item)
+                    if main_item not in possible_main_items:
+                        possible_main_items.append(main_item)
 
     #if that still does not work, return error code 0
     if len(possible_main_items) == 0:
@@ -163,40 +170,39 @@ def assert_current():
                 if subitem["name"] == "None":
                     current_item[sublist["name"]].remove(subitem)
 
+        #if there are no items in a sublist (there must be at least one, even if the item is "none")
         if length==0:
             g.opc.update_one(current_order(), {"$set":{"sublist_in_q":sublist}})
             g.opc.update_one(current_order(), {"$set":{"section":"sublist"}})
             return send_message(sublist["prompting_question"]+your_options_are(sublist))
 
-        if length<sublist["min_choices"]:
+        #if the user indicated too many or too few items in a sublist
+        if length<sublist["min_choices"] or length>sublist["max_choices"]:
             current_item[sublist["name"]] = []
             g.opc.update_one(current_order(), {"$set":{"sublist_in_q":sublist}})
             g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
             g.opc.update_one(current_order(), {"$set":{"section":"sublist"}})
             return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min=sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
+    
 
-        if length>sublist["max_choices"]:
-            current_item[sublist["name"]] = []
-            g.opc.update_one(current_order(), {"$set":{"sublist_in_q":sublist}})
-            g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
-            g.opc.update_one(current_order(), {"$set":{"section":"sublist"}})
-            return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min = sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
+    #PROCEED IF NONE OF THE SUBLISTS HAD ISSUES
 
-    #if none of the sublists had any issues
+    #send user back to order process
     g.opc.update_one(current_order(), {"$set":{"section":"ordering_process"}})
-    resp = ""
+
+    #add the item to the item list
     item_list = current_order()["item_list"]
     if item_list == None:
         item_list = []
     item_list.append(current_item)
     g.opc.update_one(current_order(), {"$set":{"item_list":item_list}})
 
-    resp += stringify_order()
-    resp += ' \n \nWhat is the next item I can get for you? If you are done text "finished"'
-
+    #reset current_item and sublist_in_q
     g.opc.update_one(current_order(), {"$set":{"current_item":None}})
     g.opc.update_one(current_order(), {"$set":{"sublist_in_q":None}})
 
+    #craft response
+    resp = stringify_order() + ' \n \nWhat is the next item I can get for you? Please text "finished" if that is it.'
     return send_message(resp)
 
 
@@ -250,7 +256,8 @@ def fill_in_one_sublist(sublist):
 Sends the user a link to checkout.
 """
 def checkout():
-  
+    
+    #creates a checkout session with stripe api
     session = stripe.checkout.Session.create(
         payment_method_types = ['card'],
         line_items=[{
@@ -267,9 +274,15 @@ def checkout():
         cancel_url='http://dashboard.autoordersystems.com/failure/',
     )
 
+    #stores the unique id
     g.opc.update_one(current_order(), {"$set":{"payment_intent":session.payment_intent}})
 
-    return send_message("Here is your link to checkout. Your order will be processed once you pay. http://dashboard.autoordersystems.com/checkout/{id}".format(id=session.id))
+    #craft response
+    resp = "Here is your link to checkout. Your order will be processed once you pay. \n\nhttp://dashboard.autoordersystems.com/checkout/{id}".format(id=session.id)
+    if g.to_num == "+12676276054":
+        resp += "\n\nDEMO: Use 4242 4242 4242 4242 as the credit card number. Type in anything for the rest of the information."
+
+    return send_message(resp)
 
 
 

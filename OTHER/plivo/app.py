@@ -127,23 +127,26 @@ def main():
         resp += "\n{name}".format(name=infoc.find_one({"_id":"info"})["name"])
         for name in infoc.find_one({"_id":"info"})["names"]:
             if is_similar(name):
+                from_profile["current_order"][g.to_num] = {}
                 from_profile["current_order"][g.to_num]["code"] = code
                 from_profile["current_order"][g.to_num]["time"] = str(datetime.datetime.today())
 
     #if the keyword search worked
-    if from_profile["current_order"][g.to_num]["code"]:
+    if from_profile["current_order"].get(g.to_num):
+        a=from_profile["current_order"].get(g.to_num)
+        if a.get("code"):
 
-        #update the database
-        g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":from_profile["current_order"]}})
+            #update the database
+            g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":from_profile["current_order"]}})
 
-        #set some global variables based on code
-        rdb = g.cluster["{code}".format(code=from_profile["current_order"][g.to_num]["code"])]
-        g.opc = rdb["order_process"]
-        g.menu = rdb["info"].find_one({"_id":"menu"})
-        g.info = rdb["info"].find_one({"_id":"info"})
+            #set some global variables based on code
+            rdb = g.cluster["{code}".format(code=from_profile["current_order"][g.to_num]["code"])]
+            g.opc = rdb["order_process"]
+            g.menu = rdb["info"].find_one({"_id":"menu"})
+            g.info = rdb["info"].find_one({"_id":"info"})
 
-        #do the thing
-        return order_index()
+            #do the thing
+            return order_index()
 
     #if the program fails to fill in the current order, send an index message
     else:

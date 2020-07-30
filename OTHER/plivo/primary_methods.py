@@ -15,7 +15,7 @@ def first_message():
     
     #if the restaurant is closed
     if not g.info["is_open"]:
-        g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":None}})
+        g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":{}}})
         return send_message_and_menu(g.info["closed_intro"]+" Here is our menu.")
     
     #if the restaurant is open
@@ -24,17 +24,26 @@ def first_message():
         #initialize order object
         g.opc.insert_one({"from_num":g.from_num, "to_num":g.to_num, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
 
+        #initialize response
+        resp = g.info["open_intro"]+" Here is our menu."
+
         #if the restaurant offers delivery
         if g.info["offers_delivery"]:
             g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"pickup_or_delivery"}})
-            return send_message_and_menu(g.info["open_intro"]+' Here is our menu. Is this order for pickup or delivery? \n\nText "restart" at any time to restart the whole process.')
+            resp += " Is this order for pickup or delivery? "
         
         #if the restaurant does not offer delivery
         else:
             g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"ordering_process"}})
-            return send_message_and_menu(g.info["open_intro"]+' This order will be for pickup. Here is our menu. What is the first item we can get for you? \n\nText "restart" at any time to restart the whole process.')
+            resp += " This order will be for pickup."
 
+        resp += '\n\nText "restart" at any time to restart the whole process.'
 
+        #if there is an index
+        if len(g.onc.find_one({"_id":g.to_num})["codes"]) > 1:
+            resp += ' Text "index" at any time to cancel your order and return to the restaurant index.'
+
+        return send_message_and_menu(resp)
 
 
 #triggered if customer is indicating pickup or delivery

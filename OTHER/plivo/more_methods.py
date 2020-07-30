@@ -70,7 +70,7 @@ Returns: A string, example: "1x Pizza[$8] (Size: Medium[+$2]. Toppings: Pepperon
 def stringify_order():
      
     resp = "YOUR ORDER: "
-    item_list = g.opc.find_one({"from_num":g.from_num})["item_list"]
+    item_list = current_order()["item_list"]
 
     for item in item_list:
 
@@ -110,7 +110,7 @@ Returns: Float of total order cost
 """
 def total_cost():
 
-    item_list = g.opc.find_one({"from_num":g.from_num})["item_list"]
+    item_list = current_order()["item_list"]
     cost = 0
 
     for item in item_list:
@@ -154,3 +154,11 @@ def pricify(price):
         resp = "${price}".format(price=price)
 
     return resp
+
+
+"""
+Finds the current version of the current item.
+"""
+def current_order():
+    return g.opc.find_one({"from_num":g.from_num, "to_num":g.to_num})
+

@@ -149,7 +149,7 @@ Returns: question if a sublist is not filled out properly
 def assert_current():
     
     #pull the current item from the db
-    current_item = g.opc.find_one({"from_num":g.from_num})["current_item"]
+    current_item = current_order()["current_item"]
 
     #iterate through sublist and make sure options match min/max requirements
     for sublist in current_item["main_item"]["adds_list"]:
@@ -164,38 +164,38 @@ def assert_current():
                     current_item[sublist["name"]].remove(subitem)
 
         if length==0:
-            g.opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":sublist}})
-            g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"sublist"}})
+            g.opc.update_one(current_order(), {"$set":{"sublist_in_q":sublist}})
+            g.opc.update_one(current_order(), {"$set":{"section":"sublist"}})
             return send_message(sublist["prompting_question"]+your_options_are(sublist))
 
         if length<sublist["min_choices"]:
             current_item[sublist["name"]] = []
-            g.opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":sublist}})
-            g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
-            g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"sublist"}})
+            g.opc.update_one(current_order(), {"$set":{"sublist_in_q":sublist}})
+            g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
+            g.opc.update_one(current_order(), {"$set":{"section":"sublist"}})
             return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min=sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
 
         if length>sublist["max_choices"]:
             current_item[sublist["name"]] = []
-            g.opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":sublist}})
-            g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
-            g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"sublist"}})
+            g.opc.update_one(current_order(), {"$set":{"sublist_in_q":sublist}})
+            g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
+            g.opc.update_one(current_order(), {"$set":{"section":"sublist"}})
             return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min = sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
 
     #if none of the sublists had any issues
-    g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"ordering_process"}})
+    g.opc.update_one(current_order(), {"$set":{"section":"ordering_process"}})
     resp = ""
-    item_list = g.opc.find_one({"from_num":g.from_num})["item_list"]
+    item_list = current_order()["item_list"]
     if item_list == None:
         item_list = []
     item_list.append(current_item)
-    g.opc.update_one({"from_num":g.from_num}, {"$set":{"item_list":item_list}})
+    g.opc.update_one(current_order(), {"$set":{"item_list":item_list}})
 
     resp += stringify_order()
     resp += ' \n \nWhat is the next item I can get for you? If you are done text "finished"'
 
-    g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":None}})
-    g.opc.update_one({"from_num":g.from_num}, {"$set":{"sublist_in_q":None}})
+    g.opc.update_one(current_order(), {"$set":{"current_item":None}})
+    g.opc.update_one(current_order(), {"$set":{"sublist_in_q":None}})
 
     return send_message(resp)
 
@@ -206,7 +206,7 @@ Input: phone number, msg
 """
 def fill_in_sublists():
     
-    current_item = g.opc.find_one({"from_num":g.from_num})["current_item"]
+    current_item = current_order()["current_item"]
     
     for sublist in current_item["main_item"]["adds_list"]:
         
@@ -217,7 +217,7 @@ def fill_in_sublists():
                 if is_similar(name):
                     
                     current_item[sublist["name"]].append(choice)
-                    g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+                    g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
 
 
 
@@ -227,7 +227,7 @@ Input: phone number, msg, specific sublist
 """
 def fill_in_one_sublist(sublist):
 
-    current_item = g.opc.find_one({"from_num":g.from_num})["current_item"]
+    current_item = current_order()["current_item"]
 
     for choice in sublist["choice_list"]:
             
@@ -236,14 +236,14 @@ def fill_in_one_sublist(sublist):
             if is_similar(name):
                     
                 current_item[sublist["name"]].append(choice)
-                g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+                g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
 
     #if user did not specify any choices, use the none choice
     if len(current_item[sublist["name"]]) == 0:
         for choice in sublist["choice_list"]:
             if choice["name"] == "None":
                 current_item[sublist["name"]].append(choice)
-                g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+                g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
 
 
 """
@@ -267,7 +267,7 @@ def checkout():
         cancel_url='http://dashboard.autoordersystems.com/failure/',
     )
 
-    g.opc.update_one({"from_num":g.from_num}, {"$set":{"payment_intent":session.payment_intent}})
+    g.opc.update_one(current_order(), {"$set":{"payment_intent":session.payment_intent}})
 
     return send_message("Here is your link to checkout. Your order will be processed once you pay. http://dashboard.autoordersystems.com/checkout/{id}".format(id=session.id))
 

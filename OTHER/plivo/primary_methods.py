@@ -9,32 +9,32 @@ from pymongo import MongoClient
 
 from methods import *
 
+import datetime
+
 
 #triggered if the message sent is the first message the customer has sent in 4 hours I think because that is when the session is cleared
 def first_message():
     
     #if the restaurant is closed
     if not g.info["is_open"]:
-        g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":{}}})
+        #delete the order
+        g.delete_one(current_order())
         return send_message_and_menu(g.info["closed_intro"]+" Here is our menu.")
     
     #if the restaurant is open
     if g.info["is_open"]:
-
-        #initialize order object
-        g.opc.insert_one({"from_num":g.from_num, "to_num":g.to_num, "section":"ordering_process", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
 
         #initialize response
         resp = g.info["open_intro"]+" Here is our menu."
 
         #if the restaurant offers delivery
         if g.info["offers_delivery"]:
-            g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"pickup_or_delivery"}})
+            g.opc.update_one(current_order(), {"$set":{"section":"pickup_or_delivery"}})
             resp += " Is this order for pickup or delivery? "
         
         #if the restaurant does not offer delivery
-        else:
-            g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"ordering_process"}})
+        if not g.info["offers_delivery"]:
+            g.opc.update_one(current_order(), {"$set":{"section":"ordering_process"}})
             resp += " This order will be for pickup."
 
         resp += '\n\nText "restart" at any time to restart the whole process.'
@@ -51,14 +51,14 @@ def pickup_or_delivery():
     
     #if the customer answers yes
     if is_similar("delivery"):
-        g.opc.update_one({"from_num":g.from_num}, {"$set":{"method_of_getting_food":"delivery"}})
-        g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"get_address"}})
+        g.opc.update_one(current_order(), {"$set":{"method_of_getting_food":"delivery"}})
+        g.opc.update_one(current_order(), {"$set":{"section":"get_address"}})
         return send_message("What is your full address?")
     
     #if the customer answers no
     if is_similar("pickup"):
-        g.opc.update_one({"from_num":g.from_num}, {"$set":{"method_of_getting_food":"pickup"}})
-        g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"ordering_process"}})
+        g.opc.update_one(current_order(), {"$set":{"method_of_getting_food":"pickup"}})
+        g.opc.update_one(current_order(), {"$set":{"section":"ordering_process"}})
         return send_message("What is the first item we can get for you?")
     
     #if the user did not indicate either of these
@@ -70,12 +70,14 @@ def pickup_or_delivery():
 #triggered if the user is typing in their address
 def get_address():
 
+    #if the user typed in something too short
     if len(g.msg) < 10:
         return send_message("This seems too short. Please text your full address.")
 
+    #if the user supposedly typed in their address
     else:
-        g.opc.update_one({"from_num":g.from_num}, {"$set":{"address":g.msg}})
-        g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"ordering_process"}})
+        g.opc.update_one(current_order(), {"$set":{"address":g.msg}})
+        g.opc.update_one(current_order(), {"$set":{"section":"ordering_process"}})
         return send_message("Thanks! What is the first item we can get for you?")
 
 
@@ -85,8 +87,15 @@ def ordering_process():
 
     #if the customer indicates they are done ordering
     if is_similar("finish"):
-        g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"comments"}})
-        return send_message('Please text anything you would like the chef to know about your order. If you have no comments just text "none".')
+
+        #if the user didn't order anything
+        if total_cost() == 0:
+            return send_message("Sorry, your order must cost more than $0. Please order a main item.")
+
+        #if the user did order something
+        else:
+            g.opc.update_one(current_order(), {"$set":{"section":"comments"}})
+            return send_message('Please text anything you would like the chef to know about your order. If you have no comments just text "none".')
     
     #get the main item the customer ordered
     main_item_or_error_code = get_main_item()
@@ -106,8 +115,9 @@ def ordering_process():
         current_item = {"main_item":main_item_or_error_code}
         for sublist in main_item_or_error_code["adds_list"]:
             current_item[sublist["name"]] = []
-        g.opc.update_one({"from_num":g.from_num}, {"$set":{"current_item":current_item}})
+        g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
 
+        #try to fill in the sublists of the main item
         fill_in_sublists()
 
         return assert_current()
@@ -125,15 +135,14 @@ def sublist_in_q(sublist):
 def comments():
 
     if not is_similar("none"):
-        g.opc.update_one({"from_num":g.from_num}, {"$set":{"comments":g.msg}})
+        g.opc.update_one(current_order(), {"$set":{"comments":g.msg}})
     
-    g.opc.update_one({"from_num":g.from_num}, {"$set":{"section":"finished_ordering"}})
+    g.opc.update_one(current_order(), {"$set":{"section":"finished_ordering"}})
     return checkout()
 
+#if the user is done ordering, NEEDS WORK
 def finished_ordering():
-    g.opc.delete_one({"from_num":g.from_num})
-    #fix this later
-    #g.unc.update_one({"_id":g.from_num}, {"$set":{"current_order":None}})
+    g.opc.delete_one(current_order())
 
     return send_message("data cleared")
     

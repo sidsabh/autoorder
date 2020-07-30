@@ -15,20 +15,22 @@ from primary_methods import *
 def order_index():
     
     #get the order of the phone number
-    order = g.opc.find_one({"from_num":g.from_num})
+    order = g.opc.find_one({"from_num":g.from_num, "to_num":g.to_num})
 
     #if the user wants to restart the order
     if g.msg == "restart":
-        g.opc.delete_one({"from_num":g.from_num})
-        order = None
-    
-    #if this is the first message that the customer sends
-    if order == None:
-        return first_message()
+        g.opc.delete_one({"from_num":g.from_num, "to_num":g.to_num})
+        new_order = {"from_num":g.from_num, "to_num":g.to_num, "code":order["code"], "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None}
+        order = new_order
+        g.opc.insert_one(order)
 
     #if a sublist is being filled
     if order["sublist_in_q"]:
         return sublist_in_q(order["sublist_in_q"])
+
+    #if this is the first message that the customer sends
+    if order["section"] == "first":
+        return first_message()
 
     #if the customer is answering to pickup or delivery
     if order["section"] == "pickup_or_delivery":

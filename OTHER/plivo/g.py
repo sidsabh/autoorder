@@ -11,7 +11,7 @@ cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.m
 index_db = cluster["Index"]
 onc = index_db["our_numbers"]
 unc = index_db["user_numbers"]
-
+opc = index_db["order_process"]
 
 #The user's phone number
 from_num = None
@@ -24,16 +24,13 @@ msg = None
 
 
 
-#The menu of the restaurant
+#The menu of the current restaurant
 menu = None
 
-#The info of the restaurant
+#The info of the current restaurant
 info = None
 
-#order process collection
-opc = None
-
-#all restaurant codes
-codes = ["0000","0001","0002", "0003","0004","0005", "0006","0007","0008", "0009","0010","0011", "0012","0013","0014", "0015","0016","0017"]
+#The code of the current restaurant
+code = None
 
 

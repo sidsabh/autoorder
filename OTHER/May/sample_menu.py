@@ -11,42 +11,6 @@ collection = db["restaurants"]
 
 
 #Add On Choices
-tonkotsu = {
-    "name":"Tonkotsu",
-    "names_list":["tonkotsu"],
-    "add_price":2.0
-}
-
-tonkotsu_black = {
-    "name":"Tonkotsu black",
-    "names_list":["black"],
-    "add_price":2.0
-}
-
-miso = {
-    "name":"Miso",
-    "names_list":["miso"],
-    "add_price":0.0
-}
-
-spicy_miso = {
-    "name": "Spicy miso",
-    "names_list":["spicy"],
-    "add_price":1.0
-}
-
-shoyu = {
-    "name":"Shoyu",
-    "names_list":["shoyu"],
-    "add_price":0.0
-}
-
-shio = {
-    "name":"Shio",
-    "names_list":["shio"],
-    "add_price":0.0
-}
-
 chashu = {
     "name":"Chashu",
     "names_list":["chashu", "pork belly"],
@@ -90,15 +54,6 @@ extra_toppings_none = {
 }
 
 #Add On Lists
-ramen_flavors = {
-    "name":"Flavors",
-    "choice_list":[tonkotsu, tonkotsu_black, miso, spicy_miso, shoyu, shio],
-    "min_choices":1,
-    "max_choices":1,
-    "prompting_question":"What flavor of ramen would you like?",
-    "sublist_inceptions":[]
-}
-
 extra_ramen_toppings = {
     "name":"Extra toppings",
     "choice_list":[chashu, nitamago, menma, kikurage, narutomaki, nori_seaweed, extra_toppings_none],
@@ -151,11 +106,46 @@ chicken_karaage = {
     "base_price":4.0
 }
 
-ramen = {
-    "name":"Ramen",
-    "names_list":["ramen", "noodles"],
-    "adds_list":[ramen_flavors, extra_ramen_toppings],
-    "base_price":8.0
+tonkotsu_ramen = {
+    "name":"Tonkotsu Ramen",
+    "names_list":["tonkotsu"],
+    "adds_list":[extra_ramen_toppings],
+    "base_price":12.0
+}
+
+tonkotsu_black_ramen = {
+    "name":"Tonkotsu Black Ramen",
+    "names_list":["tonkotsu black"],
+    "adds_list":[extra_ramen_toppings],
+    "base_price":12.0
+}
+
+miso_ramen = {
+    "name":"Miso Ramen",
+    "names_list":["miso"],
+    "adds_list":[extra_ramen_toppings],
+    "base_price":10.0
+}
+
+spicy_miso_ramen = {
+    "name":"Spicy Miso Ramen",
+    "names_list":["spicy miso", "miso spicy"],
+    "adds_list":[extra_ramen_toppings],
+    "base_price":10.0
+}
+
+shoyu_ramen = {
+    "name":"Shoyu Ramen",
+    "names_list":["shoyu"],
+    "adds_list":[extra_ramen_toppings],
+    "base_price":11.0
+}
+
+shio_ramen = {
+    "name":"Shio Ramen",
+    "names_list":["shio"],
+    "adds_list":[extra_ramen_toppings],
+    "base_price":11.0
 }
 
 bbq_pork_bun = {
@@ -248,7 +238,8 @@ menu = {
     "name":"Ozu Ramen",
     "names":["ozu", "ramen"],
     "main_items":[edamame, gyoza, takoyaki, chicken_wing, salmon_share, chicken_karaage, 
-    ramen, bbq_pork_bun, chicken_karaage_bun, wasabi_mini_burger, seared_salmon_plate, chicken_teriyaki, japanese_chashu_don, short_rib_lover, grilled_unagi_bowl, 
+    tonkotsu_ramen, tonkotsu_black_ramen, miso_ramen, spicy_miso_ramen, shoyu_ramen, shio_ramen,
+    bbq_pork_bun, chicken_karaage_bun, wasabi_mini_burger, seared_salmon_plate, chicken_teriyaki, japanese_chashu_don, short_rib_lover, grilled_unagi_bowl, 
     ramune, coca_cola, sprite, green_tea],
     "link":"https://iili.io/d7Hc8u.jpg",
     "open_intro":"Welcome to Ozu Ramen!",

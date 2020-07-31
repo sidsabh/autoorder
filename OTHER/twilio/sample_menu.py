@@ -6,8 +6,8 @@ Sample menu in dictionary form.
 import pymongo
 from pymongo import MongoClient
 cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
-db = cluster["0000"]
-menu_collection = db["info"]
+db = cluster["Index"]
+menu_collection = db["restaurants"]
 
 
 #Add On Choices
@@ -150,31 +150,49 @@ fries_main = {
     "adds_list":[],
     "base_price":5.0
 }
-
+'''
 #Overall menu
-menu = {
-    "restaurant_name":"Cheesy Does It",
-    "open_intro_message":"Welcome to Cheesy Does It! Here is our menu. What can I get for you?",
-    "closed_intro_message":"Welcome to Cheesy Does It! Here is our menu. We are currently closed but will open soon! Our hours are: [hours]",
+menu_collection.insert_one({
+    "_id":"0000",
+    "name":"Cheesy Does It",
+    "names":["cheesy"],
+    "main_items": [pizza, burger, coke, fries_main],
+    "link":"https://iili.io/dIAGcl.jpg",
+    "open_intro":"Welcome to Cheesy Does It! Here is our menu. What can I get for you?",
+    "closed_intro":"Welcome to Cheesy Does It! Here is our menu. We are currently closed but will open soon! Our hours are: [hours]",
     "delivery_time":60,
     "pickup_time":30,
     "offers_delivery":True,
     "is_open":True,
-    "main_items":[pizza, burger, coke, fries_main]
-}
-
-menu_collection.delete_one({"_id":"menu"})
-menu_collection.insert_one({"_id":"menu","main_items":[pizza, burger, coke, fries_main], "link":"https://uofi.box.com/s/ovex1fgqoutaf9ld57hoo8b69rzedzpm"})
-
-menu_collection.delete_one({"_id":"info"})
+    "orders":[]
+})
+'''
 menu_collection.insert_one({
-    "_id":"info",
+    "_id":"0001",
+    "name":"Testaurant",
+    "names":["test"],
+    "main_items": [pizza, burger, coke, fries_main],
+    "link":"https://iili.io/dIAGcl.jpg",
+    "open_intro":"Welcome to the Testaurant! Here is our menu. What can I get for you?",
+    "closed_intro":"Welcome to the Testaurant! Here is our menu. We are currently closed but will open soon! Our hours are: [hours]",
+    "delivery_time":60,
+    "pickup_time":30,
+    "offers_delivery":True,
+    "is_open":False,
+    "orders":[]
+})
+
+menu_collection.insert_one({
+    "_id":"0002",
     "name":"Other Restaurant",
     "names":["other"],
+    "main_items": [pizza, burger, coke, fries_main],
+    "link":"https://iili.io/dIAGcl.jpg",
     "open_intro":"Welcome to the Other Restaurant! Here is our menu. What can I get for you?",
     "closed_intro":"Welcome to the Other Restaurant! Here is our menu. We are currently closed but will open soon! Our hours are: [hours]",
     "delivery_time":60,
     "pickup_time":30,
-    "offers_delivery":True,
+    "offers_delivery":False,
     "is_open":True,
+    "orders":[]
 })

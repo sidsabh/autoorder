@@ -6,8 +6,8 @@ Sample menu in dictionary form.
 import pymongo
 from pymongo import MongoClient
 cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
-db = cluster["0000"]
-menu_collection = db["info"]
+db = cluster["Info"]
+collection = db["restaurants"]
 
 
 #Add On Choices
@@ -78,14 +78,32 @@ narutomaki = {
 }
 
 nori_seaweed = {
-    "name":"Nori seaweed",
-    "names_list":["nori seaweed", "nori", "seaweed"],
+    "name":"Nori Seaweed",
+    "names_list":["nori", "seaweed"],
     "add_price":0.0
 }
 
 extra_toppings_none = {
     "name":"None",
     "names_list":["no toppings", "no extra toppings", "plain"],
+    "add_price":0.0
+}
+
+bbq_pork_bun = {
+    "name":"BBQ Pork Bun",
+    "names_list":["nori", "seaweed"],
+    "add_price":0.0
+}
+
+chicken_karaage_bun = {
+    "name":"Chicken Karaage Bun",
+    "names_list":["nori", "seaweed"],
+    "add_price":0.0
+}
+
+wasabi_mini_burger = {
+    "name":"Wasabi Mini Burger",
+    "names_list":["nori", "seaweed"],
     "add_price":0.0
 }
 
@@ -141,77 +159,77 @@ takoyaki = {
 }
 
 chicken_wing = {
-    "name":"Chicken wing",
-    "names_list":["wings", "chicken wings", "chicken wing"],
+    "name":"Chicken Wing",
+    "names_list":["wings"],
     "adds_list":[],
     "base_price":3.0
 }
 
 salmon_share = {
-    "name":"Salmon share",
-    "names_list":["salmon share", "salmon"],
+    "name":"Salmon Share",
+    "names_list":["salmon share"],
     "adds_list":[],
     "base_price":6.0
 }
 
 chicken_karaage = {
-    "name":"Chicken karaage",
-    "names_list":["chicken karaage", "karaage"],
+    "name":"Chicken Karaage",
+    "names_list":["karaage"],
     "adds_list":[],
     "base_price":4.0
 }
 
 ramen = {
     "name":"Ramen",
-    "names_list":["ramen", "noodles", "raman"],
+    "names_list":["ramen", "noodles"],
     "adds_list":[ramen_flavors, extra_ramen_toppings],
     "base_price":8.0
 }
 
 ozu_hirata_buns = {
     "name":"Ozu Hirata Buns",
-    "names_list":["ozu hirata buns", "buns", "bun", "hirata bun"],
-    "adds_list":[ozu_hirata_buns, burger_sides],
+    "names_list":["buns"],
+    "adds_list":[hirata_buns_flavors],
     "base_price":10.0
 }
 
 seared_salmon_plate = {
-    "name":"Seared salmon plate",
-    "names_list":["seared salmon plate", "salmon plate","salmon", "seared salmon"],
+    "name":"Seared Salmon Plate",
+    "names_list":["seared salmon", "salmon plate"],
     "adds_list":[],
     "base_price":14.0
 }
 
 chicken_teriyaki = {
-    "name":"Chicken teriyaki",
-    "names_list":["chicken teriyaki", "chicken", "teriyaki", "teriyaki chicken"],
+    "name":"Chicken Teriyaki",
+    "names_list":["chicken", "teriyaki"],
     "adds_list":[],
     "base_price":12.0
 }
 
 japanese_chashu_don = {
     "name":"Japanese Chashu Don",
-    "names_list":["japanese chashu don", "chashu don", "chashu"],
+    "names_list":["chashu"],
     "adds_list":[],
     "base_price":12.0
 }
 
 short_rib_lover = {
-    "name":"Short rib lover",
-    "names_list":["short rib lover", "short ribs", "short rib"],
+    "name":"Short Rib Lover",
+    "names_list":["short rib"],
     "adds_list":[],
     "base_price":13.0
 }
 
 grilled_unagi_bowl = {
-    "name":"Grilled unagi bowl",
-    "names_list":["unagi", "unagi bowl", "grilled unagi bowl"],
+    "name":"Grilled Unagi Bowl",
+    "names_list":["unagi"],
     "adds_list":[],
     "base_price":14.0
 }
 
 ramune = {
-    "name":"ramune",
+    "name":"Ramune",
     "names_list":["ramune"],
     "adds_list":[],
     "base_price":2.50
@@ -219,7 +237,7 @@ ramune = {
 
 coca_cola = {
     "name":"Coca Cola",
-    "names_list":["coke", "coca"],
+    "names_list":["coke", "coca", "cola"],
     "adds_list":[],
     "base_price":1.0
 }
@@ -233,37 +251,28 @@ sprite = {
 
 green_tea = {
     "name":"Green tea",
-    "names_list":["tea", "green tea"],
+    "names_list":["tea"],
     "adds_list":[],
     "base_price":0.75
 }
 
 #Overall menu
 menu = {
-    "restaurant_name":"Ozu Ramen",
-    "open_intro_message":"Welcome to Ozu Ramen! Here is our menu. What can we get for you?",
-    "closed_intro_message":"Welcome to Ozu Ramen! Here is our menu. We are currently closed but will open soon! Our hours are: [hours]",
-    "delivery_time":60,
-    "pickup_time":30,
-    "offers_delivery":True,
-    "is_open":True,
+    "_id":"0003",
+    "name":"Ozu Ramen",
+    "names":["ozu", "ramen"],
     "main_items":[edamame, gyoza, takoyaki, chicken_wing, salmon_share, chicken_karaage, 
     ramen, ozu_hirata_buns, seared_salmon_plate, chicken_teriyaki, japanese_chashu_don, short_rib_lover, grilled_unagi_bowl, 
-    ramune, coca_cola, sprite, green_tea]
-}
-
-menu_collection.delete_one({"_id":"menu"})
-menu_collection.insert_one({"_id":"menu","main_items":[pizza, burger, coke, fries_main], "link":"https://uofi.box.com/s/ovex1fgqoutaf9ld57hoo8b69rzedzpm"})
-
-menu_collection.delete_one({"_id":"info"})
-menu_collection.insert_one({
-    "_id":"info",
-    "name":"Other Restaurant",
-    "names":["other"],
-    "open_intro":"Welcome to the Other Restaurant! Here is our menu. What can I get for you?",
-    "closed_intro":"Welcome to the Other Restaurant! Here is our menu. We are currently closed but will open soon! Our hours are: [hours]",
+    ramune, coca_cola, sprite, green_tea],
+    "link":"https://iili.io/d7Hc8u.jpg",
+    "open_intro":"Welcome to Ozu Ramen!",
+    "closed_intro":"Welcome to Ozu Ramen! We are currently closed but will open soon! Our hours are: [hours]",
     "delivery_time":60,
     "pickup_time":30,
     "offers_delivery":True,
     "is_open":True,
-})
+    "orders":[]
+}
+
+
+collection.insert_one(menu)

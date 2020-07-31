@@ -4,6 +4,7 @@ to enable text message ordering for restaurants.
 This file is mainly for parsing the database to find the user and define global variables.
 """
 
+from info import *
 import g
 
 from flask import Flask, request, session, render_template, abort
@@ -43,7 +44,7 @@ def delete_old():
     items_to_delete = []
 
     #get all orders and iterate through them
-    orders = g.opc.find({})
+    orders = g.OPC.find({})
     for order in orders:
 
         #converts the order time from a string to a datetime
@@ -69,81 +70,82 @@ def main():
 
     #get the message that was sent and make it all lowercase
     #CHANGE TO 'Text' WHEN USING PLIVO 
-    g.msg = request.values.get('Body')
-    g.msg = g.msg.lower()
-
+    message = request.values.get('Body')
+    message = message.lower()
     #get the phone number of the incoming msg
-    g.from_num = request.values.get('From', None)
-    
+    from_num = request.values.get('From', None)
     #get the phone number the message was sent to
-    g.to_num = request.values.get('To', None)
+    to_num = request.values.get('To', None)
+
+    #setup a class to store this basic info
+    msg = info(message,from_num,to_num,None)
 
     #if the user does not have a profile in our database
-    if not g.unc.find_one({"_id":g.from_num}):
-        g.unc.insert_one({"_id":g.from_num})
+    if not g.UNC.find_one({"_id":msg.fro}):
+        g.UNC.insert_one({"_id":msg.fro})
     
 
     
     #if the user is known to be in the middle of an order with the number they texted
-    if current_order():
+    if current_order(msg):
 
         #reset time
-        g.opc.update_one(current_order(), {"$set":{"timestamp":str(datetime.datetime.today())}})
+        g.OPC.update_one(current_order(msg), {"$set":{"timestamp":str(datetime.datetime.today())}})
 
-        #setup the current restaurant's menu and info
-        rdb = g.cluster["{code}".format(code=current_order()["code"])]
-        g.menu = rdb["info"].find_one({"_id":"menu"})
-        g.info = rdb["info"].find_one({"_id":"info"})
-
+        #setup the current restaurant's info
+        msg.rinfo = g.RC.find_one({"_id":current_order(msg)["code"]})
+        
         #if the user texted "index" then delete the order
-        if g.msg=="index":
-            g.opc.delete_one(current_order())
+        if msg.txt=="index":
+            g.OPC.delete_one(current_order(msg))
 
         else:
             #go do the things
-            return order_index()
+            return order_index(msg)
 
 
     #THE NEXT PART OF THE CODE TRIES TO FILL IN THE CURRENT ORDER
 
     #get info about the number the user texted
-    to_profile = g.onc.find_one({"_id":g.to_num})
+    to_profile = g.ONC.find_one({"_id":msg.to})
 
     #if the number only has one restaurant attached to it
     if len(to_profile["codes"]) == 1:
         
         #initialize order object
-        g.opc.insert_one({"from_num":g.from_num, "to_num":g.to_num, "code":to_profile["codes"][0], "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
+        g.OPC.insert_one({"from_num":msg.fro, "to_num":msg.to, "code":to_profile["codes"][0], "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
 
-        #set some global variables based on code
-        rdb = g.cluster["{code}".format(code=current_order()["code"])]
-        g.menu = rdb["info"].find_one({"_id":"menu"})
-        g.info = rdb["info"].find_one({"_id":"info"})
+        #setup the current restaurant's info
+        msg.rinfo = g.RC.find_one({"_id":current_order(msg)["code"]})
 
         #do the thing
-        return order_index()
+        return order_index(msg)
 
 
     #see if the user typed in any of keyword of a restaurant in the index, also build response if it fails
     resp = to_profile["index_message"]+" Your options are: \n"
     #iterate through the codes attached to the number the user texted
     for code in to_profile["codes"]:
-        db = g.cluster["{code}".format(code=code)]
-        infoc = db["info"]
-        resp += "\n{name}".format(name=infoc.find_one({"_id":"info"})["name"])
+
+        #find the restaurant with the corresponding code
+        restaurant = g.RC.find_one({"_id":code})
+
+        #add the restaurant's name to the reply
+        resp += "\n{name}".format(name=restaurant["name"])
+
         #iterate through the keywords attached to the code
-        for name in infoc.find_one({"_id":"info"})["names"]:
+        for name in restaurant["names"]:
 
             #if the user did enter a keyword
-            if is_similar(name):
+            if is_similar(msg, name):
                 #initialize order object
-                g.opc.insert_one({"from_num":g.from_num, "to_num":g.to_num, "code":code, "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
+                g.OPC.insert_one({"from_num":msg.fro, "to_num":msg.to, "code":code, "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
 
-                #set some global variables based on code
-                rdb = g.cluster["{code}".format(code=current_order()["code"])]
-                g.menu = rdb["info"].find_one({"_id":"menu"})
-                g.info = rdb["info"].find_one({"_id":"info"})
-                return order_index()
+                #setup the current restaurant's info
+                msg.rinfo = g.RC.find_one({"_id":current_order(msg)["code"]})
+
+                #go do the things
+                return order_index(msg)
 
 
     #if the program fails to fill in the current order, send an index message
@@ -193,22 +195,20 @@ def checkedout():
         pi = session["payment_intent"]
         
         #get the order the payment intent corresponds to
-        correct_order = g.opc.find_one({"payment_intent":pi})
-
-        db = g.cluster["{code}".format(code=correct_order["code"])]
+        correct_order = g.OPC.find_one({"payment_intent":pi})
 
         #craft and send a message
         if correct_order["method_of_getting_food"] == "pickup":
-            resp = "Your order has been processed! Your food will be ready for pickup in about {min} minutes.".format(min=db["info"].find_one({"_id":"info"})["pickup_time"])
+            resp = "Your order has been processed! Your food will be ready for pickup in about {min} minutes.".format(min=g.RC.find_one({"_id":correct_order["code"]})["pickup_time"])
         if correct_order["method_of_getting_food"] == "delivery":
-            resp = "Your order has been processed! Your food will be delivered in about {min} minutes.".format(min=db["info"].find_one({"_id":"info"})["delivery_time"])   
+            resp = "Your order has been processed! Your food will be delivered in about {min} minutes.".format(min=g.RC.find_one({"_id":correct_order["code"]})["delivery_time"])   
         send_message_client(resp, correct_order["from_num"], correct_order["to_num"])
         
         #delete the current order
-        g.opc.delete_one({"payment_intent":pi})
+        g.OPC.delete_one({"payment_intent":pi})
 
-        oc = db["orders"]
-        oc.insert_one(correct_order)
+        #insert order into order collection
+        g.OC.insert_one(correct_order)
 
 
 

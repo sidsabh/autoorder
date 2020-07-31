@@ -59,15 +59,15 @@ def send_message(resp):
     response.message(resp)
     return str(response)
 
-def send_message_and_menu(resp):
+def send_message_and_menu(msg, resp):
     client.messages.create(
-    to=g.from_num,
-    from_=g.to_num,
+    to=msg.fro,
+    from_=msg.to,
     body=None,
-    media_url=g.menu["link"]
+    media_url=msg.rinfo["link"]
     )
     response = MessagingResponse()
-    message = response.message(resp)
+    response.message(resp)
     return str(response)
 
 def send_message_client(message, to_no, from_no):
@@ -86,21 +86,21 @@ Returns: Main Item indicated (MainItem) OR error codes
 1 (the user indicated more than 1 main item)
 2 (the user indicated main items but the code somehow deleted all of them)
 """
-def get_main_item():
+def get_main_item(msg):
 
     #gets all the main items included in the user's input string
     possible_main_items = []
-    for main_item in g.menu["main_items"]:
+    for main_item in msg.rinfo["main_items"]:
         for name in main_item["names_list"]:
-            if name in g.msg:
+            if name in msg.txt:
                 if main_item not in possible_main_items:
                     possible_main_items.append(main_item)
     
     #if the user did not indicate any main items, use the typo thing
     if len(possible_main_items) == 0:
-        for main_item in g.menu["main_items"]:
+        for main_item in msg.rinfo["main_items"]:
             for name in main_item["names_list"]:
-                if is_similar(name):
+                if is_similar(msg, name):
                     if main_item not in possible_main_items:
                         possible_main_items.append(main_item)
 
@@ -153,10 +153,10 @@ Makes sure the current_item has all the sides filled out in accordance with min 
 Input: g.opc, phone number
 Returns: question if a sublist is not filled out properly
 """
-def assert_current():
+def assert_current(msg):
     
     #pull the current item from the db
-    current_item = current_order()["current_item"]
+    current_item = current_order(msg)["current_item"]
 
     #iterate through sublist and make sure options match min/max requirements
     for sublist in current_item["main_item"]["adds_list"]:
@@ -172,37 +172,37 @@ def assert_current():
 
         #if there are no items in a sublist (there must be at least one, even if the item is "none")
         if length==0:
-            g.opc.update_one(current_order(), {"$set":{"sublist_in_q":sublist}})
-            g.opc.update_one(current_order(), {"$set":{"section":"sublist"}})
+            g.OPC.update_one(current_order(msg), {"$set":{"sublist_in_q":sublist}})
+            g.OPC.update_one(current_order(msg), {"$set":{"section":"sublist"}})
             return send_message(sublist["prompting_question"]+your_options_are(sublist))
 
         #if the user indicated too many or too few items in a sublist
         if length<sublist["min_choices"] or length>sublist["max_choices"]:
             current_item[sublist["name"]] = []
-            g.opc.update_one(current_order(), {"$set":{"sublist_in_q":sublist}})
-            g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
-            g.opc.update_one(current_order(), {"$set":{"section":"sublist"}})
+            g.OPC.update_one(current_order(msg), {"$set":{"sublist_in_q":sublist}})
+            g.OPC.update_one(current_order(msg), {"$set":{"current_item":current_item}})
+            g.OPC.update_one(current_order(msg), {"$set":{"section":"sublist"}})
             return send_message("{q} (you must have a minimum of {min} and a maximum of {max})".format(q=sublist["prompting_question"], min=sublist["min_choices"], max=sublist["max_choices"])+your_options_are(sublist))
     
 
     #PROCEED IF NONE OF THE SUBLISTS HAD ISSUES
 
     #send user back to order process
-    g.opc.update_one(current_order(), {"$set":{"section":"ordering_process"}})
+    g.OPC.update_one(current_order(msg), {"$set":{"section":"ordering_process"}})
 
     #add the item to the item list
-    item_list = current_order()["item_list"]
+    item_list = current_order(msg)["item_list"]
     if item_list == None:
         item_list = []
     item_list.append(current_item)
-    g.opc.update_one(current_order(), {"$set":{"item_list":item_list}})
+    g.OPC.update_one(current_order(msg), {"$set":{"item_list":item_list}})
 
     #reset current_item and sublist_in_q
-    g.opc.update_one(current_order(), {"$set":{"current_item":None}})
-    g.opc.update_one(current_order(), {"$set":{"sublist_in_q":None}})
+    g.OPC.update_one(current_order(msg), {"$set":{"current_item":None}})
+    g.OPC.update_one(current_order(msg), {"$set":{"sublist_in_q":None}})
 
     #craft response
-    resp = stringify_order() + ' \n \nWhat is the next item I can get for you? Please text "finished" if that is it.'
+    resp = stringify_order(msg) + ' \n \nWhat is the next item I can get for you? Please text "finished" if that is it.'
     return send_message(resp)
 
 
@@ -210,9 +210,9 @@ def assert_current():
 Takes a message and find things in sublists and adds them to the current item.
 Input: phone number, msg
 """
-def fill_in_sublists():
+def fill_in_sublists(msg):
     
-    current_item = current_order()["current_item"]
+    current_item = current_order(msg)["current_item"]
     
     for sublist in current_item["main_item"]["adds_list"]:
         
@@ -220,10 +220,10 @@ def fill_in_sublists():
             
             for name in choice["names_list"]:
                 
-                if is_similar(name):
+                if is_similar(msg, name):
                     
                     current_item[sublist["name"]].append(choice)
-                    g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
+                    g.OPC.update_one(current_order(msg), {"$set":{"current_item":current_item}})
 
 
 
@@ -231,31 +231,31 @@ def fill_in_sublists():
 Takes a message and only fills in a specific sublist.
 Input: phone number, msg, specific sublist
 """
-def fill_in_one_sublist(sublist):
+def fill_in_one_sublist(msg, sublist):
 
-    current_item = current_order()["current_item"]
+    current_item = current_order(msg)["current_item"]
 
     for choice in sublist["choice_list"]:
             
         for name in choice["names_list"]:
                 
-            if is_similar(name):
+            if is_similar(msg, name):
                     
                 current_item[sublist["name"]].append(choice)
-                g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
+                g.OPC.update_one(current_order(msg), {"$set":{"current_item":current_item}})
 
     #if user did not specify any choices, use the none choice
     if len(current_item[sublist["name"]]) == 0:
         for choice in sublist["choice_list"]:
             if choice["name"] == "None":
                 current_item[sublist["name"]].append(choice)
-                g.opc.update_one(current_order(), {"$set":{"current_item":current_item}})
+                g.OPC.update_one(current_order(msg), {"$set":{"current_item":current_item}})
 
 
 """
 Sends the user a link to checkout.
 """
-def checkout():
+def checkout(msg):
     
     #creates a checkout session with stripe api
     session = stripe.checkout.Session.create(
@@ -263,7 +263,7 @@ def checkout():
         line_items=[{
             
             'price_data': {
-                'unit_amount': int(total_cost()*100),
+                'unit_amount': int(total_cost(msg)*100),
                 'currency': 'usd',
                 'product': 'prod_HifPkxqBklYeQl',
         },
@@ -275,11 +275,11 @@ def checkout():
     )
 
     #stores the unique id
-    g.opc.update_one(current_order(), {"$set":{"payment_intent":session.payment_intent}})
+    g.OPC.update_one(current_order(msg), {"$set":{"payment_intent":session.payment_intent}})
 
     #craft response
     resp = "Here is your link to checkout. Your order will be processed once you pay. \n\nhttp://dashboard.autoordersystems.com/checkout/{id}".format(id=session.id)
-    if g.to_num == "+12676276054":
+    if msg.to == "+12676276054":
         resp += "\n\nDEMO: Use 4242 4242 4242 4242 as the credit card number. Type in anything for the rest of the information."
 
     return send_message(resp)

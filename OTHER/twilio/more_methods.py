@@ -9,11 +9,11 @@ Deals with typos. Returns true if the msg contains a word that matches to one le
 Input: The item name to match msg with
 Returns: True or False
 """
-def is_similar(Word):
+def is_similar(msg, Word):
 
     Same = False
 
-    for Sen_Word in g.msg.split(" "):
+    for Sen_Word in msg.txt.split(" "):
         if Word in Sen_Word: Same = True
         
         elif len(Sen_Word) == len(Word)+1:
@@ -67,10 +67,10 @@ Turns an item the customer ordered into a string to be repeated back to them.
 Input: item (current_item)
 Returns: A string, example: "1x Pizza[$8] (Size: Medium[+$2]. Toppings: Pepperoni[+$1], Mushroom[+$0.5], Onion[+$1].)."
 """
-def stringify_order():
+def stringify_order(msg):
      
     resp = "YOUR ORDER: "
-    item_list = current_order()["item_list"]
+    item_list = current_order(msg)["item_list"]
 
     for item in item_list:
 
@@ -79,7 +79,6 @@ def stringify_order():
         if len(item["main_item"]["adds_list"]) > 0:
 
             item_str += "\n"
-            #item_str += "("
 
             for sublist in item["main_item"]["adds_list"]:
 
@@ -93,12 +92,11 @@ def stringify_order():
                     else:
                         item_str += ", "
 
-            item_str = item_str[:-1]
-            #item_str += ")" 
+            item_str = item_str[:-1] 
 
         resp += item_str
 
-    resp += " \n\nTOTAL COST: {cost}".format(cost=pricify(total_cost()))
+    resp += " \n\nTOTAL COST: {cost}".format(cost=pricify(total_cost(msg)))
 
     return resp
 
@@ -108,9 +106,9 @@ def stringify_order():
 Totals the cost of all the items in the order.
 Returns: Float of total order cost
 """
-def total_cost():
+def total_cost(msg):
 
-    item_list = current_order()["item_list"]
+    item_list = current_order(msg)["item_list"]
     cost = 0
 
     for item in item_list:
@@ -159,6 +157,6 @@ def pricify(price):
 """
 Finds the current version of the current item.
 """
-def current_order():
-    return g.opc.find_one({"from_num":g.from_num, "to_num":g.to_num})
+def current_order(msg):
+    return g.OPC.find_one({"from_num":msg.fro, "to_num":msg.to})
 

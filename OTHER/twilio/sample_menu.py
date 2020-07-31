@@ -139,7 +139,7 @@ burger = {
 
 coke = {
     "name":"Coke",
-    "names_list":["coke","cola"],
+    "names_list":["coke","cola", "coca"],
     "adds_list":[],
     "base_price":1.5
 }

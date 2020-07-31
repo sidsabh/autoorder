@@ -6,7 +6,7 @@ Sample menu in dictionary form.
 import pymongo
 from pymongo import MongoClient
 cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
-db = cluster["Info"]
+db = cluster["Development"]
 collection = db["restaurants"]
 
 

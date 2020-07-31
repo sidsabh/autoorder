@@ -5,7 +5,7 @@ This file is mainly for parsing the database to find the user and define global 
 """
 
 from info import *
-import g
+from settings import *
 
 from flask import Flask, request, session, render_template, abort
 
@@ -44,7 +44,7 @@ def delete_old():
     items_to_delete = []
 
     #get all orders and iterate through them
-    orders = g.OPC.find({})
+    orders = OPC.find({})
     for order in orders:
 
         #converts the order time from a string to a datetime
@@ -55,7 +55,7 @@ def delete_old():
         #if the difference between the last time the order was updated and the current time is greater than 20 minutes, delete the order from the database
         difference = current_time - order_time
         if difference.total_seconds()/60 > 20:
-            MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")["Index"]["order_process"].delete_one({"_id":order["_id"]})
+            OPC.delete_one({"_id":order["_id"]})
 
 
 #create scheduler
@@ -81,8 +81,8 @@ def main():
     msg = info(message,from_num,to_num,None)
 
     #if the user does not have a profile in our database
-    if not g.UNC.find_one({"_id":msg.fro}):
-        g.UNC.insert_one({"_id":msg.fro})
+    if not UNC.find_one({"_id":msg.fro}):
+        UNC.insert_one({"_id":msg.fro})
     
 
     
@@ -90,14 +90,14 @@ def main():
     if current_order(msg):
 
         #reset time
-        g.OPC.update_one(current_order(msg), {"$set":{"timestamp":str(datetime.datetime.today())}})
+        OPC.update_one(current_order(msg), {"$set":{"timestamp":str(datetime.datetime.today())}})
 
         #setup the current restaurant's info
-        msg.rinfo = g.RC.find_one({"_id":current_order(msg)["code"]})
+        msg.rinfo = RC.find_one({"_id":current_order(msg)["code"]})
         
         #if the user texted "index" then delete the order
         if msg.txt=="index":
-            g.OPC.delete_one(current_order(msg))
+            OPC.delete_one(current_order(msg))
 
         else:
             #go do the things
@@ -107,16 +107,16 @@ def main():
     #THE NEXT PART OF THE CODE TRIES TO FILL IN THE CURRENT ORDER
 
     #get info about the number the user texted
-    to_profile = g.ONC.find_one({"_id":msg.to})
+    to_profile = ONC.find_one({"_id":msg.to})
 
     #if the number only has one restaurant attached to it
     if len(to_profile["codes"]) == 1:
         
         #initialize order object
-        g.OPC.insert_one({"from_num":msg.fro, "to_num":msg.to, "code":to_profile["codes"][0], "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
+        OPC.insert_one({"from_num":msg.fro, "to_num":msg.to, "code":to_profile["codes"][0], "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
 
         #setup the current restaurant's info
-        msg.rinfo = g.RC.find_one({"_id":current_order(msg)["code"]})
+        msg.rinfo = RC.find_one({"_id":current_order(msg)["code"]})
 
         #do the thing
         return order_index(msg)
@@ -128,7 +128,7 @@ def main():
     for code in to_profile["codes"]:
 
         #find the restaurant with the corresponding code
-        restaurant = g.RC.find_one({"_id":code})
+        restaurant = RC.find_one({"_id":code})
 
         #add the restaurant's name to the reply
         resp += "\n{name}".format(name=restaurant["name"])
@@ -139,10 +139,10 @@ def main():
             #if the user did enter a keyword
             if is_similar(msg, name):
                 #initialize order object
-                g.OPC.insert_one({"from_num":msg.fro, "to_num":msg.to, "code":code, "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
+                OPC.insert_one({"from_num":msg.fro, "to_num":msg.to, "code":code, "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
 
                 #setup the current restaurant's info
-                msg.rinfo = g.RC.find_one({"_id":current_order(msg)["code"]})
+                msg.rinfo = RC.find_one({"_id":current_order(msg)["code"]})
 
                 #go do the things
                 return order_index(msg)
@@ -195,20 +195,20 @@ def checkedout():
         pi = session["payment_intent"]
         
         #get the order the payment intent corresponds to
-        correct_order = g.OPC.find_one({"payment_intent":pi})
+        correct_order = OPC.find_one({"payment_intent":pi})
 
         #craft and send a message
         if correct_order["method_of_getting_food"] == "pickup":
-            resp = "Your order has been processed! Your food will be ready for pickup in about {min} minutes.".format(min=g.RC.find_one({"_id":correct_order["code"]})["pickup_time"])
+            resp = "Your order has been processed! Your food will be ready for pickup in about {min} minutes.".format(min=RC.find_one({"_id":correct_order["code"]})["pickup_time"])
         if correct_order["method_of_getting_food"] == "delivery":
-            resp = "Your order has been processed! Your food will be delivered in about {min} minutes.".format(min=g.RC.find_one({"_id":correct_order["code"]})["delivery_time"])   
+            resp = "Your order has been processed! Your food will be delivered in about {min} minutes.".format(min=RC.find_one({"_id":correct_order["code"]})["delivery_time"])   
         send_message_client(resp, correct_order["from_num"], correct_order["to_num"])
         
         #delete the current order
-        g.OPC.delete_one({"payment_intent":pi})
+        OPC.delete_one({"payment_intent":pi})
 
         #insert order into order collection
-        g.OC.insert_one(correct_order)
+        OC.insert_one(correct_order)
 
 
 

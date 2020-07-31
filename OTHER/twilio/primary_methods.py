@@ -2,7 +2,7 @@
 This contains all the primary methods used in the code. After the section is identified, the main file calls a method from here.
 """
 
-import g
+from settings import *
 
 import pymongo
 from pymongo import MongoClient
@@ -18,7 +18,7 @@ def first_message(msg):
     #if the restaurant is closed
     if not msg.rinfo["is_open"]:
         #delete the order
-        g.OPC.delete_one(current_order(msg))
+        OPC.delete_one(current_order(msg))
         return send_message_and_menu(msg, msg.rinfo["closed_intro"]+" Our menu will arrive momentarily.")
     
     #if the restaurant is open
@@ -29,18 +29,18 @@ def first_message(msg):
 
         #if the restaurant offers delivery
         if msg.rinfo["offers_delivery"]:
-            g.OPC.update_one(current_order(msg), {"$set":{"section":"pickup_or_delivery"}})
+            OPC.update_one(current_order(msg), {"$set":{"section":"pickup_or_delivery"}})
             resp += " Is this order for pickup or delivery? "
         
         #if the restaurant does not offer delivery
         if not msg.rinfo["offers_delivery"]:
-            g.OPC.update_one(current_order(msg), {"$set":{"section":"ordering_process"}})
+            OPC.update_one(current_order(msg), {"$set":{"section":"ordering_process"}})
             resp += " This order will be for pickup."
 
         resp += '\n\nText "restart" at any time to restart the whole process.'
 
         #if there is an index
-        if len(g.ONC.find_one({"_id":msg.to})["codes"]) > 1:
+        if len(ONC.find_one({"_id":msg.to})["codes"]) > 1:
             resp += ' Text "index" at any time to cancel your order and return to the restaurant index.'
 
         #if this is the demo number
@@ -55,14 +55,14 @@ def pickup_or_delivery(msg):
     
     #if the customer answers yes
     if is_similar(msg, "delivery"):
-        g.OPC.update_one(current_order(msg), {"$set":{"method_of_getting_food":"delivery"}})
-        g.OPC.update_one(current_order(msg), {"$set":{"section":"get_address"}})
+        OPC.update_one(current_order(msg), {"$set":{"method_of_getting_food":"delivery"}})
+        OPC.update_one(current_order(msg), {"$set":{"section":"get_address"}})
         return send_message("What is your full address?")
     
     #if the customer answers no
     if is_similar(msg, "pickup"):
-        g.OPC.update_one(current_order(msg), {"$set":{"method_of_getting_food":"pickup"}})
-        g.OPC.update_one(current_order(msg), {"$set":{"section":"ordering_process"}})
+        OPC.update_one(current_order(msg), {"$set":{"method_of_getting_food":"pickup"}})
+        OPC.update_one(current_order(msg), {"$set":{"section":"ordering_process"}})
         return send_message("What is the first item we can get for you?")
     
     #if the user did not indicate either of these
@@ -80,8 +80,8 @@ def get_address(msg):
 
     #if the user supposedly typed in their address
     else:
-        g.OPC.update_one(current_order(msg), {"$set":{"address":msg.txt}})
-        g.OPC.update_one(current_order(msg), {"$set":{"section":"ordering_process"}})
+        OPC.update_one(current_order(msg), {"$set":{"address":msg.txt}})
+        OPC.update_one(current_order(msg), {"$set":{"section":"ordering_process"}})
         return send_message("Thanks! What is the first item we can get for you?")
 
 
@@ -98,7 +98,7 @@ def ordering_process(msg):
 
         #if the user did order something
         else:
-            g.OPC.update_one(current_order(msg), {"$set":{"section":"comments"}})
+            OPC.update_one(current_order(msg), {"$set":{"section":"comments"}})
             return send_message('Please text anything you would like the chef to know about your order. If you have no comments just text "none".')
     
     #get the main item the customer ordered
@@ -119,7 +119,7 @@ def ordering_process(msg):
         current_item = {"main_item":main_item_or_error_code}
         for sublist in main_item_or_error_code["adds_list"]:
             current_item[sublist["name"]] = []
-        g.OPC.update_one(current_order(msg), {"$set":{"current_item":current_item}})
+        OPC.update_one(current_order(msg), {"$set":{"current_item":current_item}})
 
         #try to fill in the sublists of the main item
         fill_in_sublists(msg)
@@ -139,9 +139,9 @@ def sublist_in_q(msg, sublist):
 def comments(msg):
 
     if not is_similar(msg, "none"):
-        g.OPC.update_one(current_order(msg), {"$set":{"comments":msg.txt}})
+        OPC.update_one(current_order(msg), {"$set":{"comments":msg.txt}})
     
-    g.OPC.update_one(current_order(msg), {"$set":{"section":"finished_ordering"}})
+    OPC.update_one(current_order(msg), {"$set":{"section":"finished_ordering"}})
     return checkout(msg)
 
 #if the user is done ordering

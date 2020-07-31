@@ -26,5 +26,16 @@ SENTRY_DSN = os.getenv("SENTRY_DSN")
 CLUSTER = MongoClient(CLUSTER_ID)
 
 if ENVIRONMENT == "development":
-    DB = CLUSTER["development"]
+    DB = CLUSTER["Development"]
     STRIPE_API_KEY = os.getenv("STRIPE_TEST_API_KEY")
+    STRIPE_SECRET_ENDPOINT = os.getenv("STRIPE_TEST_SECRET_ENDPOINT")
+
+if ENVIRONMENT == "deployment":
+    DB = CLUSTER["deployment"]
+    STRIPE_API_KEY = os.getenv("STRIPE_LIVE_API_KEY")
+
+ONC = DB["our_numbers"]
+UNC = DB["user_numbers"]
+OPC = DB["order_process"]
+RC = DB["restaurants"]
+OC = DB["orders"]

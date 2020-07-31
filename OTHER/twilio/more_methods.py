@@ -2,7 +2,7 @@
 This file is for even more general methods. This file should not require any imports except global variables.
 """
 
-import g
+from settings import *
 
 """
 Deals with typos. Returns true if the msg contains a word that matches to one letter off.
@@ -158,5 +158,5 @@ def pricify(price):
 Finds the current version of the current item.
 """
 def current_order(msg):
-    return g.OPC.find_one({"from_num":msg.fro, "to_num":msg.to})
+    return OPC.find_one({"from_num":msg.fro, "to_num":msg.to})
 

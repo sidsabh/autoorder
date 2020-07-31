@@ -3,11 +3,9 @@ This is the code for ordering once the program knows what restaurant the user is
 """
 
 from settings import *
+from essentials import *
 
-import pymongo
-from pymongo import MongoClient
-
-from methods import *
+from messaging import *
 from primary_methods import *
 
 
@@ -15,11 +13,11 @@ from primary_methods import *
 def order_index(msg):
     
     #get the order of the phone number
-    order = OPC.find_one({"from_num":msg.fro, "to_num":msg.to})
+    order = OPC.find_one(current_order(msg))
 
     #if the user wants to restart the order
     if msg.txt == "restart":
-        OPC.delete_one({"from_num":msg.fro, "to_num":msg.to})
+        OPC.delete_one(current_order(msg))
         new_order = {"from_num":msg.fro, "to_num":msg.to, "code":order["code"], "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None}
         order = new_order
         OPC.insert_one(order)

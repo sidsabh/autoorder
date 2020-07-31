@@ -3,49 +3,9 @@ This file contains supplementary methods that may be used in the main file.
 """
 
 from settings import *
-from more_methods import *
+from essentials import *
 
-#import plivo
-#from plivo import plivoxml
-from twilio.twiml.messaging_response import MessagingResponse
-from twilio.rest import Client
-account_sid = "AC3971c871eb7f952d5a11646897d50feb"
-auth_token = "b95dbec5849ab614c0f8248281096924"
-client = Client(account_sid, auth_token)
-
-import pymongo
-from pymongo import MongoClient
-
-import stripe
-stripe.api_key = 'sk_test_51H7n9PDTJ2YcvBWss1pfBvdXC70jEZ8wV4vpVhF0dViTlNRc9kRigRMJfJSoi6lYCJclszW3Ejx9qDXcCWwvtWyF00KHSY6yyV'
-
-
-from flask import Flask, request, make_response, Response, url_for
-
-
-
-def send_message(resp):
-    response = MessagingResponse()
-    response.message(resp)
-    return str(response)
-
-def send_message_and_menu(msg, resp):
-    client.messages.create(
-    to=msg.fro,
-    from_=msg.to,
-    body=None,
-    media_url=msg.rinfo["link"]
-    )
-    response = MessagingResponse()
-    response.message(resp)
-    return str(response)
-
-def send_message_client(message, to_no, from_no):
-    client.messages.create(
-    to=to_no,
-    from_=from_no,
-    body=message
-    )
+from messaging import *
 
 
 """
@@ -222,37 +182,6 @@ def fill_in_one_sublist(msg, sublist):
                 OPC.update_one(current_order(msg), {"$set":{"current_item":current_item}})
 
 
-"""
-Sends the user a link to checkout.
-"""
-def checkout(msg):
-    
-    #creates a checkout session with stripe api
-    session = stripe.checkout.Session.create(
-        payment_method_types = ['card'],
-        line_items=[{
-            
-            'price_data': {
-                'unit_amount': int(total_cost(msg)*100),
-                'currency': 'usd',
-                'product': 'prod_HifPkxqBklYeQl',
-        },
-        'quantity': 1,
-        }],
-        mode='payment',
-        success_url='http://dashboard.autoordersystems.com/success/',
-        cancel_url='http://dashboard.autoordersystems.com/failure/',
-    )
-
-    #stores the unique id
-    OPC.update_one(current_order(msg), {"$set":{"payment_intent":session.payment_intent}})
-
-    #craft response
-    resp = "Here is your link to checkout. Your order will be processed once you pay. \n\nhttp://dashboard.autoordersystems.com/checkout/{id}".format(id=session.id)
-    if msg.to == "+12676276054":
-        resp += "\n\nDEMO: Use 4242 4242 4242 4242 as the credit card number. Type in anything for the rest of the information."
-
-    return send_message(resp)
 
 
 

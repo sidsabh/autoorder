@@ -5,17 +5,14 @@ This file is mainly for parsing the database to find the user and define global 
 """
 
 from info import *
+
 from settings import *
+from essentials import *
 
 from flask import Flask, request, session, render_template, abort
 
-import pymongo
-from pymongo import MongoClient
-
+from messaging import *
 from order_index import *
-from primary_methods import *
-from methods import *
-from more_methods import *
 
 import time
 import atexit

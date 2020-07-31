@@ -60,8 +60,6 @@ def is_similar(msg, Word):
     return Same
 
 
-
-
 """
 Turns an item the customer ordered into a string to be repeated back to them.
 Input: item (current_item)
@@ -134,7 +132,6 @@ def your_options_are(sublist):
         resp += " (+{priced})".format(priced=pricify(subitem["add_price"]))
 
     return resp
-
 
 
 """

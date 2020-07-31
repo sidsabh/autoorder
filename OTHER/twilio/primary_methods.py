@@ -3,11 +3,11 @@ This contains all the primary methods used in the code. After the section is ide
 """
 
 from settings import *
+from essentials import *
 
-import pymongo
-from pymongo import MongoClient
-
-from methods import *
+from payment import *
+from messaging import *
+from order_processing import *
 
 import datetime
 

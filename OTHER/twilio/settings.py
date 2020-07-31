@@ -31,7 +31,7 @@ if ENVIRONMENT == "development":
     STRIPE_SECRET_ENDPOINT = os.getenv("STRIPE_TEST_SECRET_ENDPOINT")
 
 if ENVIRONMENT == "deployment":
-    DB = CLUSTER["deployment"]
+    DB = CLUSTER["Deployment"]
     STRIPE_API_KEY = os.getenv("STRIPE_LIVE_API_KEY")
 
 ONC = DB["our_numbers"]

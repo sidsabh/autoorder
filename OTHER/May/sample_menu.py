@@ -85,28 +85,9 @@ nori_seaweed = {
 
 extra_toppings_none = {
     "name":"None",
-    "names_list":["no toppings", "no extra toppings", "plain"],
+    "names_list":["none", "no extra toppings", "plain"],
     "add_price":0.0
 }
-
-bbq_pork_bun = {
-    "name":"BBQ Pork Bun",
-    "names_list":["nori", "seaweed"],
-    "add_price":0.0
-}
-
-chicken_karaage_bun = {
-    "name":"Chicken Karaage Bun",
-    "names_list":["nori", "seaweed"],
-    "add_price":0.0
-}
-
-wasabi_mini_burger = {
-    "name":"Wasabi Mini Burger",
-    "names_list":["nori", "seaweed"],
-    "add_price":0.0
-}
-
 
 #Add On Lists
 ramen_flavors = {
@@ -124,15 +105,6 @@ extra_ramen_toppings = {
     "min_choices":1,
     "max_choices":100,
     "prompting_question":"Which extra ramen toppings would you like?",
-    "sublist_inceptions":[]
-}
-
-hirata_buns_flavors = {
-    "name":"Ozu Hirata Buns",
-    "choice_list":[bbq_pork_bun, chicken_karaage_bun, wasabi_mini_burger],
-    "min_choices":1,
-    "max_choices":100,
-    "prompting_question":"Which Ozu Hirata Buns would you like?",
     "sublist_inceptions":[]
 }
 
@@ -186,11 +158,25 @@ ramen = {
     "base_price":8.0
 }
 
-ozu_hirata_buns = {
-    "name":"Ozu Hirata Buns",
-    "names_list":["buns"],
-    "adds_list":[hirata_buns_flavors],
-    "base_price":10.0
+bbq_pork_bun = {
+    "name":"BBQ Pork Bun",
+    "names_list":["bbq pork"],
+    "adds_list":[],
+    "base_price":3.0
+}
+
+chicken_karaage_bun = {
+    "name":"Chicken Karaage Bun",
+    "names_list":["chicken karaage"],
+    "adds_list":[],
+    "base_price":3.0
+}
+
+wasabi_mini_burger = {
+    "name":"Wasabi Mini Burger",
+    "names_list":["wasabi mini burger"],
+    "adds_list":[],
+    "base_price":3.0
 }
 
 seared_salmon_plate = {
@@ -262,7 +248,7 @@ menu = {
     "name":"Ozu Ramen",
     "names":["ozu", "ramen"],
     "main_items":[edamame, gyoza, takoyaki, chicken_wing, salmon_share, chicken_karaage, 
-    ramen, ozu_hirata_buns, seared_salmon_plate, chicken_teriyaki, japanese_chashu_don, short_rib_lover, grilled_unagi_bowl, 
+    ramen, bbq_pork_bun, chicken_karaage_bun, wasabi_mini_burger, seared_salmon_plate, chicken_teriyaki, japanese_chashu_don, short_rib_lover, grilled_unagi_bowl, 
     ramune, coca_cola, sprite, green_tea],
     "link":"https://iili.io/d7Hc8u.jpg",
     "open_intro":"Welcome to Ozu Ramen!",

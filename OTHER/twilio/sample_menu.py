@@ -196,3 +196,4 @@ menu_collection.insert_one({
     "is_open":True,
     "orders":[]
 })
+

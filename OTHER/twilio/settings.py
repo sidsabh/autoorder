@@ -1,0 +1,30 @@
+# settings.py
+from dotenv import load_dotenv
+import os
+
+import pymongo
+from pymongo import MongoClient
+
+load_dotenv()
+
+# OR, the same with increased verbosity
+load_dotenv(verbose=True)
+
+# OR, explicitly providing path to '.env'
+from pathlib import Path  # Python 3.6+ only
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
+
+
+
+ENVIRONMENT = os.getenv("ENVIRONMENT")
+CLUSTER_ID = os.getenv("CLUSTER_ID")
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+
+CLUSTER = MongoClient(CLUSTER_ID)
+
+if ENVIRONMENT == "development":
+    DB = CLUSTER["development"]
+    STRIPE_API_KEY = os.getenv("STRIPE_TEST_API_KEY")

@@ -22,37 +22,7 @@ stripe.api_key = 'sk_test_51H7n9PDTJ2YcvBWss1pfBvdXC70jEZ8wV4vpVhF0dViTlNRc9kRig
 
 from flask import Flask, request, make_response, Response, url_for
 
-'''
-def send_message(resp):
-    response = plivoxml.ResponseElement()
-    response.add(
-        plivoxml.MessageElement(
-            resp,
-            src=g.to_num,  
-            dst=g.from_num))
-    return Response(response.to_string(), mimetype='application/xml')
 
-
-def send_message_and_menu(resp):
-
-    client = plivo.RestClient("MANTRLMJBHZTFKN2M5NW", "MTFiNDljZTkwNzQ1M2Q2ZDFjNGNiYTVmZTJiYmFh")
-
-    response = client.messages.create(
-        src=g.to_num,
-        dst=g.from_num,
-        text="",
-        media_urls=[g.menu["link"]],
-        type_='mms'
-        )
-
-    response2 = plivoxml.ResponseElement()
-    response2.add(
-        plivoxml.MessageElement(
-            resp,
-            src=g.to_num,  
-            dst=g.from_num))
-    return Response(response2.to_string(), mimetype='application/xml')
-'''
 
 def send_message(resp):
     response = MessagingResponse()

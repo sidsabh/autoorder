@@ -129,7 +129,7 @@ miso_ramen = {
 
 spicy_miso_ramen = {
     "name":"Spicy Miso Ramen",
-    "names_list":["spicy miso"],
+    "names_list":["spicy miso", "miso spicy"],
     "adds_list":[extra_ramen_toppings],
     "base_price":10.0
 }

@@ -233,7 +233,7 @@ def checkedoutDEMO():
 
     payload = request.get_data()
     sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = STRIPE_SECRET_ENDPOINT_TEST
+    endpoint_secret = STRIPE_CLI_SECRET_ENDPOINT
     event = None
 
     try:
@@ -282,9 +282,7 @@ def checkedoutDEMO():
 
         #input the order id into the restaurant's orders
         restaurant_orders = correct_restaurant["orders"]
-        print(restaurant_orders)
         restaurant_orders.append(correct_order["_id"])
-        print(restaurant_orders)
         RC.update_one({"_id":correct_order["code"]}, {"$set":{"orders":restaurant_orders}})
 
 

@@ -163,7 +163,7 @@ def checkedout():
 
     payload = request.get_data()
     sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = 'whsec_S2gZaNvumSOmvea1MxpMJ84eBMr63Hge'
+    endpoint_secret = STRIPE_SECRET_ENDPOINT
     event = None
 
     try:
@@ -194,11 +194,14 @@ def checkedout():
         #get the order the payment intent corresponds to
         correct_order = OPC.find_one({"payment_intent":pi})
 
+        #get the restaurant
+        correct_restaurant = RC.find_one({"_id":correct_order["code"]})
+
         #craft and send a message
         if correct_order["method_of_getting_food"] == "pickup":
-            resp = "Your order has been processed! Your food will be ready for pickup in about {min} minutes.".format(min=RC.find_one({"_id":correct_order["code"]})["pickup_time"])
+            resp = "Your order has been processed! Your food will be ready for pickup in about {min} minutes.".format(min=correct_restaurant["pickup_time"])
         if correct_order["method_of_getting_food"] == "delivery":
-            resp = "Your order has been processed! Your food will be delivered in about {min} minutes.".format(min=RC.find_one({"_id":correct_order["code"]})["delivery_time"])   
+            resp = "Your order has been processed! Your food will be delivered in about {min} minutes.".format(min=correct_restaurant["delivery_time"])   
         send_message_client(resp, correct_order["from_num"], correct_order["to_num"])
         
         #delete the current order
@@ -206,6 +209,13 @@ def checkedout():
 
         #insert order into order collection
         OC.insert_one(correct_order)
+
+        #input the order id into the restaurant's orders
+        restaurant_orders = correct_restaurant["orders"]
+        print(restaurant_orders)
+        restaurant_orders.append(correct_order["_id"])
+        print(restaurant_orders)
+        RC.update_one({"_id":correct_order["code"]}, {"$set":{"orders":restaurant_orders}})
 
 
 

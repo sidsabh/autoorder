@@ -5,6 +5,8 @@ This file works with Stripe, our payment api.
 from settings import *
 from essentials import *
 
+from messaging import *
+
 import stripe
 stripe.api_key = STRIPE_API_KEY
 

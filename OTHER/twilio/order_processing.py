@@ -52,7 +52,8 @@ def get_main_item(msg):
                     for name2 in main_item["names_list"]:
                         if possible_subitem != main_item:
                             if name1 in name2:
-                                possible_main_items.remove(possible_subitem)
+                                if possible_subitem in possible_main_items:
+                                    possible_main_items.remove(possible_subitem)
 
         #check if that narrowed list down to 1
         if len(possible_main_items) == 1:

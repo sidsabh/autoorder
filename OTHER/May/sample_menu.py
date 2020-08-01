@@ -47,16 +47,28 @@ nori_seaweed = {
     "add_price":0.0
 }
 
+butter = {
+    "name":"Butter",
+    "names_list":["butter"],
+    "add_price":0.0
+}
+
+corn = {
+    "name":"Corn",
+    "names_list":["corn"],
+    "add_price":0.0
+}
+
 extra_toppings_none = {
     "name":"None",
-    "names_list":["none", "no extra toppings", "plain"],
+    "names_list":["no extra toppings", "plain"],
     "add_price":0.0
 }
 
 #Add On Lists
 extra_ramen_toppings = {
     "name":"Extra toppings",
-    "choice_list":[chashu, nitamago, menma, kikurage, narutomaki, nori_seaweed, extra_toppings_none],
+    "choice_list":[chashu, nitamago, menma, kikurage, narutomaki, nori_seaweed, butter, corn, extra_toppings_none],
     "min_choices":1,
     "max_choices":100,
     "prompting_question":"Which extra ramen toppings would you like?",
@@ -115,7 +127,7 @@ tonkotsu_ramen = {
 
 tonkotsu_black_ramen = {
     "name":"Tonkotsu Black Ramen",
-    "names_list":["tonkotsu black"],
+    "names_list":["tonkotsu black", "black tonkotsu"],
     "adds_list":[extra_ramen_toppings],
     "base_price":12.0
 }
@@ -226,7 +238,7 @@ sprite = {
 }
 
 green_tea = {
-    "name":"Green tea",
+    "name":"Green Tea",
     "names_list":["tea"],
     "adds_list":[],
     "base_price":0.75

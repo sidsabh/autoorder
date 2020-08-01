@@ -30,7 +30,9 @@ print(session.id)
 '''
 
 cluster = MongoClient("mongodb+srv://admin:54230283752976456@maincluster.ntyoc.mongodb.net/Index?retryWrites=true&w=majority")
-db = cluster["Index"]
+db = cluster["Development"]
 col = db["our_numbers"]
-col.insert_one({"_id":"+14133317017", "codes":["0001","0002"], "index_message":"Welcome to the random restaurant index!"})
+#col.insert_one({"_id":"+14133317017", "codes":["0001","0002"], "index_message":"Welcome to the random restaurant index!"})
+col.insert_one({"_id":"+5155993156","codes":["0000"],"index_message":None})
+
 

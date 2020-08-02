@@ -233,7 +233,9 @@ def checkedoutDEMO():
 
     payload = request.get_data()
     sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = STRIPE_CLI_SECRET_ENDPOINT
+    endpoint_secret = STRIPE_TEST_SECRET_ENDPOINT
+
+
     event = None
 
     try:

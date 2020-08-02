@@ -152,8 +152,8 @@ def main():
 
 
 #Stripe webhook for when payment is completed
-@app.route("/checkedout", methods=['POST'])
-def checkedout():
+@app.route("/checkedout/<mode>", methods=['POST'])
+def checkedout(mode):
 
     print("webhook called!")
 
@@ -163,7 +163,14 @@ def checkedout():
 
     payload = request.get_data()
     sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = STRIPE_SECRET_ENDPOINT
+
+    if mode == "live":
+        endpoint_secret = STRIPE_LIVE_SECRET_ENDPOINT
+
+    if mode == "test":
+        endpoint_secret = STRIPE_TEST_SECRET_ENDPOINT
+
+
     event = None
 
     try:
@@ -218,79 +225,6 @@ def checkedout():
         RC.update_one({"_id":correct_order["code"]}, {"$set":{"orders":restaurant_orders}})
 
     return {}
-
-
-
-#MADE SPECIFICALLY FOR OUR DEMO NUMBER
-@app.route("/checkedoutDEMO", methods=['POST'])
-def checkedoutDEMO():
-
-    print("webhook called!")
-
-    if request.content_length > 1024*1024:
-        print("request too large")
-        abort(400)
-
-    payload = request.get_data()
-    sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = STRIPE_TEST_SECRET_ENDPOINT
-
-
-    event = None
-
-    try:
-        event = stripe.Webhook.construct_event(
-        payload, sig_header, endpoint_secret
-    )
-
-    except ValueError as e:
-        # Invalid payload
-        print("invalid payload!")
-        return {}, 400
-
-    except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
-        print("invalid signature!")
-        return {}, 400
-
-    # Handle the checkout.session.completed event
-    if event['type'] == 'checkout.session.completed':
-        print("HI")
-
-        #get the session
-        session = event['data']['object']
-        
-        #get the unique payment intent id
-        pi = session["payment_intent"]
-        
-        #get the order the payment intent corresponds to
-        correct_order = OPC.find_one({"payment_intent":pi})
-
-        #get the restaurant
-        correct_restaurant = RC.find_one({"_id":correct_order["code"]})
-
-        #craft and send a message
-        if correct_order["method_of_getting_food"] == "pickup":
-            resp = "Your order has been processed! Your food will be ready for pickup in about {min} minutes.".format(min=correct_restaurant["pickup_time"])
-        if correct_order["method_of_getting_food"] == "delivery":
-            resp = "Your order has been processed! Your food will be delivered in about {min} minutes.".format(min=correct_restaurant["delivery_time"])   
-        send_message_client(resp, correct_order["from_num"], correct_order["to_num"])
-        
-        #delete the current order
-        OPC.delete_one({"payment_intent":pi})
-
-        #insert order into order collection
-        OC.insert_one(correct_order)
-
-        #input the order id into the restaurant's orders
-        restaurant_orders = correct_restaurant["orders"]
-        restaurant_orders.append(correct_order["_id"])
-        RC.update_one({"_id":correct_order["code"]}, {"$set":{"orders":restaurant_orders}})
-
-
-
-    return {}
-
 
 
 

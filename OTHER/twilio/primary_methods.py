@@ -93,13 +93,13 @@ def ordering_process(msg):
     if is_similar(msg, "finish"):
 
         #if the user didn't order anything
-        if total_cost(msg) == 0:
-            return send_message("Sorry, your order must cost more than $0. Please order a main item.")
+        if total_cost(msg) < 0.5:
+            return send_message("Sorry, your order must cost more than $0.50. Please order a main item.")
 
         #if the user did order something
         else:
             OPC.update_one(current_order(msg), {"$set":{"section":"comments"}})
-            return send_message('Please text anything you would like the chef to know about your order. If you have no comments just text "none".')
+            return send_message('Please text anything you would like the chef to know about your order. Text "none" if you have no comments.')
     
     #get the main item the customer ordered
     main_item_or_error_code = get_main_item(msg)

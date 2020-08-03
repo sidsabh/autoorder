@@ -18,7 +18,11 @@ def checkout(msg):
     
     stripe.api_key = STRIPE_API_KEY
     if msg.to == "+12676276054":
-        stripe.api_key = "sk_test_51H7n9PDTJ2YcvBWss1pfBvdXC70jEZ8wV4vpVhF0dViTlNRc9kRigRMJfJSoi6lYCJclszW3Ejx9qDXcCWwvtWyF00KHSY6yyV"
+        stripe.api_key = STRIPE_TEST_API_KEY
+
+    product_id = STRIPE_PRODUCT_ID
+    if msg.to == "+12676276054":
+        product_id = STRIPE_TEST_PRODUCT_ID
 
     #creates a checkout session with stripe api
     session = stripe.checkout.Session.create(
@@ -28,7 +32,7 @@ def checkout(msg):
             'price_data': {
                 'unit_amount': int(total_cost(msg)*100),
                 'currency': 'usd',
-                'product': 'prod_HifPkxqBklYeQl',
+                'product': product_id,
         },
         'quantity': 1,
         }],

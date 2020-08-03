@@ -4,6 +4,8 @@ This file is for even more general methods. This file should not require any imp
 
 from settings import *
 
+from math import ceil
+
 """
 Deals with typos. Returns true if the msg contains a word that matches to one letter off.
 Input: The item name to match msg with
@@ -94,17 +96,18 @@ def stringify_order(msg):
 
         resp += item_str
 
-    resp += " \n\nTOTAL COST: {cost}".format(cost=pricify(total_cost(msg)))
+    resp += " \n\nSUBTOTAL: {cost}".format(cost=pricify(subtotal(msg)))
+    resp += "\nTAX: {tax}".format(tax=pricify(tax(msg)))
+    resp += "\nTOTAL COST: {total}".format(total=pricify(subtotal(msg)+tax(msg)))
 
     return resp
-
 
 
 """
 Totals the cost of all the items in the order.
 Returns: Float of total order cost
 """
-def total_cost(msg):
+def subtotal(msg):
 
     item_list = current_order(msg)["item_list"]
     cost = 0
@@ -116,6 +119,23 @@ def total_cost(msg):
                 cost += subitem["add_price"]
 
     return cost
+
+
+"""
+Get the tax of the total cost.
+Returns: Amount of tax based on order total and specific restaurant tax rate.
+"""
+def tax(msg):
+
+    #get subtotal, tax rate
+    sub = subtotal(msg)
+    rate = msg.rinfo["tax"]
+    #amount of money going to restaurant based on stripe commission and transaction fees and our transaction fee
+    restaurant_total = 0.971*sub - 0.3 - 0.2
+    #tax is 2.9% more than the tax rate because of stripe's commission
+    tax = rate*restaurant_total*1.029
+    tax_rounded = ceil(tax * (10**2)) / float(10**2)
+    return tax_rounded
 
 
 

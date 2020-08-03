@@ -1,5 +1,5 @@
 """
-This is the code for ordering once the program knows what restaurant the user is ordering from.
+This is the code for ordering once the program knows what restaurant the user is ordering from. The current order is assumed to exist.
 """
 
 from settings import *
@@ -53,7 +53,7 @@ def order_index(msg):
 
     #if none of these, then an error has occured
     else:
-        return send_message("Sorry, an error has occured")
+        return send_message("Sorry, an error has occured.")
 
 
 

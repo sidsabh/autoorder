@@ -4,34 +4,32 @@ to enable text message ordering for restaurants.
 This file is mainly for parsing the database to find the user and define global variables.
 """
 
-from info import *
 
 from settings import *
 from essentials import *
 
 from flask import Flask, request, session, render_template, abort
 
+from info import *
 from messaging import *
 from order_index import *
 
 import time
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
-
 import datetime
 
 #site for error handling
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 sentry_sdk.init(
-    dsn="https://7b2d5ce82959444faf33106616fa6915@o427904.ingest.sentry.io/5372681",
+    dsn=SENTRY_DSN,
     integrations=[FlaskIntegration()]
 )
 
 #setup flask app
 app = Flask(__name__)
 app.config.from_object(__name__)
-
 
 #scheduler function to delete all the old orders
 def delete_old():
@@ -54,35 +52,27 @@ def delete_old():
         if difference.total_seconds()/60 > 20:
             OPC.delete_one({"_id":order["_id"]})
 
-
 #create scheduler
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=delete_old, trigger="interval", seconds=30)
 scheduler.start()
 
 
+
 #entry point for when message comes in
 @app.route("/sms", methods=['GET', 'POST'])
 def main():
 
-    #get the message that was sent and make it all lowercase
-    #CHANGE TO 'Text' WHEN USING PLIVO 
-    message = request.values.get('Body')
-    message = message.lower()
-    #get the phone number of the incoming msg
-    from_num = request.values.get('From', None)
-    #get the phone number the message was sent to
-    to_num = request.values.get('To', None)
+    #setup a class to store the basic info (message, from number, to number, rinfo will be updated)
+    msg = info(request.values.get('Body').lower(), request.values.get('From', None), request.values.get('To', None), None)
 
-    #setup a class to store this basic info
-    msg = info(message,from_num,to_num,None)
-
-    #if the user does not have a profile in our database
+    #if the user does not have a profile in our database (this is how we will collect data on users in the future)
     if not UNC.find_one({"_id":msg.fro}):
         UNC.insert_one({"_id":msg.fro})
     
+    #get info about the number the user texted
+    to_profile = ONC.find_one({"_id":msg.to})
 
-    
     #if the user is known to be in the middle of an order with the number they texted
     if current_order(msg):
 
@@ -92,8 +82,8 @@ def main():
         #setup the current restaurant's info
         msg.rinfo = RC.find_one({"_id":current_order(msg)["code"]})
         
-        #if the user texted "index" then delete the order
-        if msg.txt=="index":
+        #if the user texted "index" and there is an index then delete the order and the user will return to the index
+        if len(to_profile["codes"])>1 and msg.txt=="index":
             OPC.delete_one(current_order(msg))
 
         else:
@@ -102,9 +92,6 @@ def main():
 
 
     #THE NEXT PART OF THE CODE TRIES TO FILL IN THE CURRENT ORDER
-
-    #get info about the number the user texted
-    to_profile = ONC.find_one({"_id":msg.to})
 
     #if the number only has one restaurant attached to it
     if len(to_profile["codes"]) == 1:
@@ -219,9 +206,7 @@ def checkedout(mode):
 
         #input the order id into the restaurant's orders
         restaurant_orders = correct_restaurant["orders"]
-        print(restaurant_orders)
         restaurant_orders.append(correct_order["_id"])
-        print(restaurant_orders)
         RC.update_one({"_id":correct_order["code"]}, {"$set":{"orders":restaurant_orders}})
 
     return {}

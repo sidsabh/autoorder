@@ -1,3 +1,8 @@
+"""
+This file sets up our environment variables.
+"""
+
+
 # settings.py
 from dotenv import load_dotenv
 import os

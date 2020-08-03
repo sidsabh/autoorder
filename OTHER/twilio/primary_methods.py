@@ -53,13 +53,13 @@ def first_message(msg):
 #triggered if customer is indicating pickup or delivery
 def pickup_or_delivery(msg):
     
-    #if the customer answers yes
+    #if the message indicates delivery
     if is_similar(msg, "delivery"):
         OPC.update_one(current_order(msg), {"$set":{"method_of_getting_food":"delivery"}})
         OPC.update_one(current_order(msg), {"$set":{"section":"get_address"}})
         return send_message("What is your full address?")
     
-    #if the customer answers no
+    #if the message indicates pickup
     if is_similar(msg, "pickup"):
         OPC.update_one(current_order(msg), {"$set":{"method_of_getting_food":"pickup"}})
         OPC.update_one(current_order(msg), {"$set":{"section":"ordering_process"}})
@@ -93,7 +93,7 @@ def ordering_process(msg):
     if is_similar(msg, "finish"):
 
         #if the user didn't order anything
-        if total_cost(msg) < 0.5:
+        if subtotal(msg) < 0.5:
             return send_message("Sorry, your order must cost more than $0.50. Please order a main item.")
 
         #if the user did order something
@@ -124,6 +124,7 @@ def ordering_process(msg):
         #try to fill in the sublists of the main item
         fill_in_sublists(msg)
 
+        #This function ensures all the sublists are filled out, and if not, messages the user appropriately
         return assert_current(msg)
     
 
@@ -144,7 +145,8 @@ def comments(msg):
     OPC.update_one(current_order(msg), {"$set":{"section":"finished_ordering"}})
     return checkout(msg)
 
-#if the user is done ordering
+
+#if the user is done ordering but the order has not been deleted yet
 def finished_ordering(msg):
 
     return send_message("Please finish paying.")

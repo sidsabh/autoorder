@@ -1,1 +1,3 @@
 .DS_Store
+*.pyc
+project/.DS_Store
